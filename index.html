@@ -344,6 +344,7 @@
                         <div class="flex items-center justify-between gap-3"><div><h3 class="text-lg font-bold text-white">가입 사용자 관리</h3><p class="text-[11px] text-zinc-500 mt-1">Firebase Authentication 계정과 이용권 상태를 확인합니다.</p></div><span class="text-xs text-zinc-500">{{ adminUsers.length }}명</span></div>
                         <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-[10px] text-amber-200/80">보안을 위해 실제 비밀번호는 조회할 수 없습니다. 이메일, Firebase UID, 가입일, 최근 로그인, 이용권 상태와 만료 시각을 확인할 수 있습니다.</div>
                         <div v-if="adminUsersLoading" class="py-8 text-center text-zinc-500 text-xs"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i>사용자 목록을 불러오는 중...</div>
+                        <div v-else-if="adminUsersError" class="py-6 text-center text-red-300 text-xs"><div class="mb-2"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>사용자 목록을 불러오지 못했습니다.</div><div class="text-[10px] text-red-300/70">{{ adminUsersError }}</div><button @click="loadAdminUsers" class="mt-3 px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white">다시 시도</button></div>
                         <div v-else-if="!adminUsers.length" class="py-8 text-center text-zinc-600 text-xs">가입된 사용자가 없습니다.</div>
                         <div v-else class="overflow-x-auto"><table class="w-full min-w-[760px] text-left"><thead><tr class="border-b border-[#27272a] text-[10px] text-zinc-500"><th class="px-3 py-2">사용자</th><th class="px-3 py-2">Firebase UID</th><th class="px-3 py-2">가입 / 최근 로그인</th><th class="px-3 py-2">이용권</th><th class="px-3 py-2">만료</th></tr></thead><tbody>
                             <tr v-for="user in adminUsers" :key="user.uid" class="border-b border-[#1f2833] last:border-0"><td class="px-3 py-3"><div class="text-xs text-white font-semibold">{{ user.email || '(이메일 없음)' }}</div><div class="text-[9px] text-zinc-500 mt-0.5">{{ user.provider || 'password' }}</div></td><td class="px-3 py-3"><button @click="copyText(user.uid)" class="text-[9px] font-mono text-indigo-300 hover:text-indigo-200">{{ user.uid }}</button></td><td class="px-3 py-3 text-[9px] text-zinc-400"><div>{{ user.createdAt || '-' }}</div><div class="text-zinc-600 mt-1">{{ user.lastSignInAt || '-' }}</div></td><td class="px-3 py-3"><span class="px-2 py-1 rounded-lg text-[9px] font-bold border" :class="user.isAdmin ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : user.accessActive ? 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20' : 'bg-zinc-800 text-zinc-500 border-zinc-700'">{{ user.isAdmin ? '관리자' : user.accessActive ? '사용 가능' : '미사용/만료' }}</span></td><td class="px-3 py-3 text-[9px] text-zinc-400">{{ user.validUntil || '-' }}<div v-if="user.accessLabel" class="text-zinc-600 mt-1 truncate max-w-[130px]">{{ user.accessLabel }}</div></td></tr>
@@ -1353,6 +1354,7 @@
                 const adminKeysLoading = ref(false);
                 const adminUsers = ref([]);
                 const adminUsersLoading = ref(false);
+                const adminUsersError = ref('');
                 const keyExpandedId = ref(null);
                 const generatedAccessKey = ref('');
                 const nowTick = ref(Date.now());
@@ -1484,11 +1486,15 @@
                 const loadAdminUsers = async () => {
                     if (!isAdmin.value) return;
                     adminUsersLoading.value = true;
+                    adminUsersError.value = '';
                     try {
                         const token = await getFirebaseIdToken();
                         const data = await apiJson('/api/admin/users', { headers: { Authorization: `Bearer ${token}` } });
                         adminUsers.value = data.users || [];
-                    } catch (error) { triggerToast(error.message, 'error'); }
+                    } catch (error) {
+                        console.error('관리자 사용자 목록 조회 실패:', error);
+                        adminUsersError.value = error.message || '사용자 목록을 불러오지 못했습니다.';
+                    }
                     finally { adminUsersLoading.value = false; }
                 };
 
@@ -1537,9 +1543,20 @@
 
                 const revokeAccessKey = async (keyId) => {
                     if (!confirm('이 이용 키를 비활성화할까요?')) return;
+                    const item = adminKeys.value.find(key => key.id === keyId);
                     try {
                         const token = await getFirebaseIdToken();
-                        await apiJson(`/api/admin/keys/${encodeURIComponent(keyId)}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+                        await apiJson(`/api/admin/keys/${encodeURIComponent(keyId)}`, {
+                            method: 'PATCH',
+                            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                active: false,
+                                validFrom: item?.validFrom || null,
+                                validUntil: item?.validUntil || null,
+                                maxUsers: item?.maxUsers || 1,
+                                label: item?.label || ''
+                            })
+                        });
                         await loadAdminKeys();
                         triggerToast('이용 키를 비활성화했습니다.');
                     } catch (error) { triggerToast(error.message, 'error'); }
@@ -1571,7 +1588,13 @@
                             try {
                                 await loadAccessStatus();
                                 await hydrateFromCloud();
-                                if (isAdmin.value) { await loadAdminKeys(); await loadAdminUsers(); }
+                                // 관리자 전용 API는 로그인 과정과 분리합니다.
+                                // 관리자 센터를 열거나 새로고침할 때만 사용자/키 목록을 조회합니다.
+                                if (!isAdmin.value) {
+                                    adminKeys.value = [];
+                                    adminUsers.value = [];
+                                    adminUsersError.value = '';
+                                }
                             } catch (error) {
                                 console.error(error);
                                 authError.value = error.message;
@@ -5755,7 +5778,7 @@ const favoriteIbaRecipesCount = computed(() => ibaOfficialDatabase.filter(iba =>
                     openSubstitutionEditor, saveSubstitutionRule, toggleSubstitutionRule, deleteSubstitutionRule, restoreDefaultSubstitutions, resetSubstitutionForm,
                     toast, confirmModal, executeConfirmAction, getTabTitle, exportData, importData, handleImageError, handleItemImageUpload,
                     firebaseReady, firebaseConfigured, currentUser, isAdmin, serviceAccess, hasServiceAccess, accessRemainingText, authMode, authLoading, authError, authForm, firebaseStatusMessage,
-                    signIn, signUp, sendPasswordReset, signOutUser, activateAccessKey, adminKeys, adminKeysLoading, adminUsers, adminUsersLoading, keyExpandedId, adminKeyForm, generatedAccessKey, createAccessKey, loadAdminKeys, loadAdminUsers, revokeAccessKey, toggleKeyUsers, extendAccessKey, deleteAccessKey, copyGeneratedKey, copyText
+                    signIn, signUp, sendPasswordReset, signOutUser, activateAccessKey, adminKeys, adminKeysLoading, adminUsers, adminUsersLoading, adminUsersError, keyExpandedId, adminKeyForm, generatedAccessKey, createAccessKey, loadAdminKeys, loadAdminUsers, revokeAccessKey, toggleKeyUsers, extendAccessKey, deleteAccessKey, copyGeneratedKey, copyText
                 };
             }
         }).mount('#app');
