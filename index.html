@@ -1101,7 +1101,7 @@
                                         <i class="fa-solid fa-image text-emerald-400"></i><span>사진 업로드</span>
                                         <input type="file" accept="image/png,image/jpeg,image/webp,image/x-icon" @change="handleWebIconUpload" class="hidden">
                                     </label>
-                                    <button v-if="webIconForm.preview || webIcon" @click="webIconForm.preview = ''; webIconForm.remove = true" type="button" class="ml-1 px-3 py-2.5 rounded-xl bg-[#181b24] border border-[#27272a] text-xs text-zinc-500 hover:text-red-300 transition">삭제</button>
+                                    <button v-if="webIconForm.preview || webIcon" @click="webIconForm.preview ? (webIconForm.preview = '', webIconForm.remove = false) : (webIconForm.remove = true)" type="button" class="ml-1 px-3 py-2.5 rounded-xl bg-[#181b24] border border-[#27272a] text-xs text-zinc-500 hover:text-red-300 transition">{{ webIconForm.preview ? '선택 취소' : '삭제' }}</button>
                                     <p class="text-[10px] text-zinc-600">권장: 정사각형 256×256px · PNG / JPG / WEBP / ICO</p>
                                 </div>
                             </div>
@@ -2284,6 +2284,7 @@
                                 const canvas = document.createElement('canvas');
                                 canvas.width = size; canvas.height = size;
                                 const ctx = canvas.getContext('2d');
+                                if (!ctx) throw new Error('이미지 처리에 실패했습니다.');
                                 ctx.clearRect(0, 0, size, size);
                                 const scale = Math.min(size / img.width, size / img.height);
                                 const w = Math.max(1, Math.round(img.width * scale));
@@ -2291,10 +2292,12 @@
                                 ctx.drawImage(img, Math.round((size-w)/2), Math.round((size-h)/2), w, h);
                                 return canvas.toDataURL('image/webp', quality);
                             };
-                            // Firestore 1MiB 제한을 피하도록 작은 WebP로 안정적으로 저장합니다.
-                            let result = render(192, 0.72);
-                            if (result.length > 300000) result = render(128, 0.58);
-                            if (result.length > 300000) return reject(new Error('이미지를 충분히 압축하지 못했습니다. 더 작은 사진을 사용해주세요.'));
+                            // Firestore 문서 크기 제한을 고려해 충분히 작은 WebP로 저장합니다.
+                            let result = render(192, 0.68);
+                            if (result.length > 220000) result = render(160, 0.60);
+                            if (result.length > 220000) result = render(128, 0.52);
+                            if (!result || !/^data:image\/webp;base64,/i.test(result)) return reject(new Error('이미지 변환에 실패했습니다.'));
+                            if (result.length > 220000) return reject(new Error('이미지를 저장할 수 있는 크기로 압축하지 못했습니다.'));
                             resolve(result);
                         };
                         img.src = reader.result;
@@ -2309,20 +2312,31 @@
                     if (!file.type.startsWith('image/')) return triggerToast('이미지 파일만 업로드할 수 있습니다.', 'error');
                     if (file.size > 8 * 1024 * 1024) return triggerToast('8MB 이하의 이미지를 선택해주세요.', 'error');
                     try {
-                        webIconForm.preview = await compressWebIcon(file);
+                        const encoded = await compressWebIcon(file);
+                        webIconForm.preview = encoded;
                         webIconForm.remove = false;
+                        triggerToast('새 아이콘을 준비했습니다. 반드시 「아이콘 저장」을 눌러 적용해주세요.');
                     } catch (error) { triggerToast(error.message, 'error'); }
                 };
 
                 const saveWebIcon = async () => {
                     try {
+                        // 새 이미지가 선택되지 않았는데 삭제 상태도 아니라면 기존 아이콘을 유지합니다.
+                        const hasNewIcon = !!String(webIconForm.preview || '').trim();
+                        const deleting = !!webIconForm.remove;
+                        if (!hasNewIcon && !deleting && !String(webIcon.value || '').trim()) {
+                            return triggerToast('먼저 웹 아이콘 사진을 선택해주세요.', 'error');
+                        }
                         const token = await getFirebaseIdToken();
-                        const nextIcon = webIconForm.remove ? '' : (webIconForm.preview || webIcon.value || '');
+                        const nextIcon = deleting ? '' : (hasNewIcon ? webIconForm.preview : webIcon.value);
                         const data = await apiJson('/api/admin-settings', { cache: 'no-store', method: 'PATCH', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ contactLink: { label: contactLinkForm.label, url: contactLinkForm.url }, webIcon: nextIcon }) });
-                        applyWebIcon(data.webIcon || '');
+                        const savedIcon = String(data.webIcon || '').trim();
+                        // 서버가 실제로 저장한 값이 새 아이콘과 다르면 성공으로 처리하지 않습니다.
+                        if (!deleting && hasNewIcon && !savedIcon) throw new Error('웹 아이콘 저장 응답이 비어 있습니다. Vercel에 최신 API 파일이 배포되었는지 확인해주세요.');
+                        applyWebIcon(savedIcon);
                         webIconForm.preview = '';
                         webIconForm.remove = false;
-                        triggerToast(data.webIcon ? '웹 아이콘을 저장했습니다.' : '웹 아이콘을 삭제했습니다.');
+                        triggerToast(deleting ? '웹 아이콘을 삭제했습니다.' : '웹 아이콘을 저장했습니다.');
                     } catch (error) { triggerToast(error.message, 'error'); }
                 };
 
