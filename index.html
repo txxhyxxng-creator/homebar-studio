@@ -353,6 +353,66 @@
                 color: #a1a1aa;
             }
 
+            /* Compact mobile category selectors: reveal options on tap instead of consuming several rows. */
+            .mobile-filter-row {
+                min-width: 0;
+            }
+            .mobile-filter-label {
+                letter-spacing: -.01em;
+            }
+            .mobile-select-wrap {
+                position: relative;
+                min-width: 0;
+                flex: 1 1 auto;
+            }
+            .mobile-filter-select {
+                width: 100%;
+                min-width: 0;
+                min-height: 2.9rem;
+                appearance: none;
+                -webkit-appearance: none;
+                background: linear-gradient(180deg, rgba(24,27,36,.96), rgba(18,20,28,.96));
+                border: 1px solid rgba(99,102,241,.24);
+                border-radius: .95rem;
+                color: #e4e4e7;
+                padding: .65rem 2.5rem .65rem .9rem;
+                font-size: .82rem;
+                font-weight: 600;
+                outline: none;
+                box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+            }
+            .mobile-filter-select:focus {
+                border-color: rgba(99,102,241,.6);
+                box-shadow: 0 0 0 3px rgba(99,102,241,.08);
+            }
+            .mobile-select-chevron {
+                position: absolute;
+                right: .9rem;
+                top: 50%;
+                transform: translateY(-50%);
+                pointer-events: none;
+                color: #818cf8;
+                font-size: .7rem;
+            }
+            .mobile-select-wrap-amber .mobile-filter-select {
+                border-color: rgba(245,158,11,.24);
+            }
+            .mobile-select-wrap-amber .mobile-select-chevron {
+                color: #fbbf24;
+            }
+
+            /* Section hierarchy: quiet eyebrow first, title second. */
+            .mobile-section-ingredients > div:first-child > div:first-child,
+            .mobile-section-iba > div:first-child > div:first-child,
+            .mobile-section-substitutions > div:first-child > div:first-child {
+                display: block;
+            }
+            .mobile-section-ingredients > div:first-child > div:first-child > div,
+            .mobile-section-iba > div:first-child > div:first-child > div,
+            .mobile-section-substitutions > div:first-child > div:first-child > div {
+                margin-bottom: .55rem;
+            }
+
             /* Filter chips: keep them on one calm horizontal rail instead of 2–3 cramped rows. */
             #app main .flex.flex-wrap.items-center.gap-2.pt-1.pb-2 {
                 flex-wrap: nowrap !important;
@@ -856,7 +916,7 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <button v-if="!isAdmin" @click="openSuggestionModal" class="px-4 py-2 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-300 border border-emerald-500/20 rounded-xl text-xs font-semibold transition flex items-center space-x-2">
-                                    <i class="fa-solid fa-lightbulb"></i><span>술 추가 건의</span>
+                                    <i class="fa-solid fa-lightbulb"></i><span>추가 요청</span>
                                 </button>
                                 <button v-if="isAdmin" @click="openModalForAdd" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg transition flex items-center space-x-2">
                                     <i class="fa-solid fa-plus"></i><span>새 주류 등록</span>
@@ -866,16 +926,17 @@
                     </div>
 
                     <!-- 카테고리 필터 -->
-                    <div class="flex flex-wrap items-center gap-2 pt-1 pb-2">
-                        <span class="text-xs font-bold text-zinc-400 mr-2 flex items-center space-x-1">
+                    <div class="mobile-filter-row flex items-center gap-3 pt-1 pb-2">
+                        <label class="mobile-filter-label text-xs font-bold text-zinc-400 flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-filter text-indigo-400 text-[10px]"></i>
-                            <span>카테고리:</span>
-                        </span>
-                        <button v-for="cat in categories" :key="cat" @click="selectedCategory = cat"
-                            :class="selectedCategory === cat ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/20 font-semibold' : 'bg-[#12141c] border-[#1f2833] text-zinc-400 hover:text-white hover:border-zinc-700'"
-                            class="px-3.5 py-1.5 rounded-xl border text-xs transition">
-                            {{ cat }}
-                        </button>
+                            <span>카테고리</span>
+                        </label>
+                        <div class="mobile-select-wrap">
+                            <select v-model="selectedCategory" class="mobile-filter-select" aria-label="술 도감 카테고리 선택">
+                                <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down mobile-select-chevron"></i>
+                        </div>
                     </div>
 
                     <!-- 주류 카드 그리드 -->
@@ -937,7 +998,7 @@
                             <p class="text-sm text-zinc-400 mt-1">도감에 등록된 주류와 나만 추가한 개인 주류를 함께 관리하세요.</p>
                         </div>
                         <button @click="openCustomCellarModal" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-plus"></i><span>내 술 추가</span>
+                            <i class="fa-solid fa-plus"></i><span>술 추가</span>
                         </button>
                     </div>
 
@@ -946,7 +1007,7 @@
                         <p class="text-zinc-400 text-sm">보유 중인 주류가 없습니다. 도감에서 술을 보유로 체크하거나 내 술을 직접 추가해보세요!</p>
                         <div class="flex items-center justify-center gap-2">
                             <button @click="currentTab = 'catalog'" class="px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-xl">도감으로 가기</button>
-                            <button @click="openCustomCellarModal" class="px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-xl">내 술 추가</button>
+                            <button @click="openCustomCellarModal" class="px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-xl">술 추가</button>
                         </div>
                     </div>
 
@@ -989,10 +1050,10 @@
                 <div v-if="currentTab === 'nonAlcoholic'" class="space-y-6 mobile-section mobile-section-ingredients">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
-                            <div class="flex items-center space-x-3 mb-1">
-                                <span class="px-2.5 py-0.5 bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[11px] font-bold rounded-md">Mixers & Garnishes</span>
-                                <h2 class="text-3xl font-bold tracking-tight text-white">기타 칵테일 재료 관리</h2>
+                            <div class="mb-2">
+                                <span class="inline-flex px-2.5 py-1 bg-amber-500/10 border border-amber-500/25 text-amber-300 text-[10px] font-bold tracking-[.08em] rounded-lg">Mixers & Garnishes</span>
                             </div>
+                            <h2 class="text-3xl font-bold tracking-tight text-white">기타 칵테일 재료 관리</h2>
                             <p class="text-sm text-zinc-400">주스, 시럽, 즙, 허브, 훈연, 음료 등 보유 중인 기타 재료를 관리하세요. IBA 추천 계산에 자동 반영됩니다.</p>
                         </div>
                         <div class="flex items-center space-x-3">
@@ -1002,18 +1063,23 @@
                             </div>
                             <button @click="openCustomIngredientModal" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold shadow-lg transition flex items-center space-x-2">
                                 <i class="fa-solid fa-plus"></i>
-                                <span>커스텀 재료 추가</span>
+                                <span>재료 추가</span>
                             </button>
                         </div>
                     </div>
 
                     <!-- 카테고리 필터 -->
-                    <div class="flex flex-wrap items-center gap-2 pt-1 pb-2">
-                        <button v-for="cat in nonAlcoholicCategories" :key="cat" @click="selectedNaCategory = cat"
-                            :class="selectedNaCategory === cat ? 'bg-amber-600 text-white border-amber-500 font-semibold shadow-md shadow-amber-600/20' : 'bg-[#12141c] border-[#1f2833] text-zinc-400 hover:text-white'"
-                            class="px-3.5 py-1.5 rounded-xl border text-xs transition">
-                            {{ cat }}
-                        </button>
+                    <div class="mobile-filter-row flex items-center gap-3 pt-1 pb-2">
+                        <label class="mobile-filter-label text-xs font-bold text-zinc-400 flex items-center gap-1.5 shrink-0">
+                            <i class="fa-solid fa-filter text-amber-400 text-[10px]"></i>
+                            <span>카테고리</span>
+                        </label>
+                        <div class="mobile-select-wrap mobile-select-wrap-amber">
+                            <select v-model="selectedNaCategory" class="mobile-filter-select" aria-label="기타 재료 카테고리 선택">
+                                <option v-for="cat in nonAlcoholicCategories" :key="cat" :value="cat">{{ cat }}</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down mobile-select-chevron"></i>
+                        </div>
                     </div>
 
                     <!-- 재료 카드 그리드 -->
@@ -1051,10 +1117,10 @@
                 <div v-if="currentTab === 'ibaDirectory'" class="space-y-6 mobile-section mobile-section-iba">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
-                            <div class="flex items-center space-x-3 mb-1">
-                                <span class="px-2.5 py-0.5 bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[11px] font-bold rounded-md">2024 International Bartenders Association</span>
-                                <h2 class="text-3xl font-bold tracking-tight text-white">IBA 공식 칵테일 도감 ({{ ibaOfficialDatabase.length }}선)</h2>
+                            <div class="mb-2">
+                                <span class="inline-flex px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/25 text-indigo-300 text-[10px] font-bold tracking-[.08em] rounded-lg">2024 International Bartenders Association</span>
                             </div>
+                            <h2 class="text-3xl font-bold tracking-tight text-white">IBA 공식 칵테일 도감 ({{ ibaOfficialDatabase.length }}선)</h2>
                             <p class="text-sm text-zinc-400">국제바텐더협회(IBA) 전체 공식 칵테일 레시피 모음입니다.</p>
                         </div>
                         <div class="relative">
@@ -1063,15 +1129,22 @@
                         </div>
                     </div>
 
-                    <!-- IBA 카테고리 필터 -->
-                    <div class="flex flex-wrap items-center gap-2 pt-1 pb-2">
-                        <button v-for="cat in ['전체', 'The Unforgettables', 'Contemporary Classics', 'New Era Drinks']" :key="cat"
-                            @click="ibaCategory = cat"
-                            :class="ibaCategory === cat ? 'bg-indigo-600 text-white border-indigo-500 font-semibold shadow-md shadow-indigo-600/20' : 'bg-[#12141c] border-[#1f2833] text-zinc-400 hover:text-white'"
-                            class="px-3.5 py-1.5 rounded-xl border text-xs transition">
-                            {{ cat }}
-                        </button>
-                        <span class="w-px h-5 bg-[#27272a] mx-1"></span>
+                    <!-- IBA 카테고리 / 상태 필터 -->
+                    <div class="mobile-filter-row flex flex-wrap items-center gap-3 pt-1 pb-2">
+                        <div class="flex items-center gap-3">
+                            <label class="mobile-filter-label text-xs font-bold text-zinc-400 flex items-center gap-1.5 shrink-0">
+                                <i class="fa-solid fa-layer-group text-indigo-400 text-[10px]"></i>
+                                <span>분류</span>
+                            </label>
+                            <div class="mobile-select-wrap">
+                                <select v-model="ibaCategory" class="mobile-filter-select" aria-label="IBA 카테고리 선택">
+                                    <option v-for="cat in ['전체', 'The Unforgettables', 'Contemporary Classics', 'New Era Drinks']" :key="cat" :value="cat">{{ cat }}</option>
+                                </select>
+                                <i class="fa-solid fa-chevron-down mobile-select-chevron"></i>
+                            </div>
+                        </div>
+                        <div class="h-5 w-px bg-[#27272a] hidden sm:block"></div>
+                        <div class="flex flex-wrap items-center gap-2">
                         <button v-for="status in ['전체', '즐겨찾기', '마셔봄', '미시음']" :key="status"
                             @click="ibaStatusFilter = status"
                             :class="ibaStatusFilter === status ? 'bg-amber-500/15 text-amber-300 border-amber-500/30 font-semibold' : 'bg-[#12141c] border-[#1f2833] text-zinc-400 hover:text-white'"
@@ -1080,6 +1153,7 @@
                             <i v-else-if="status === '마셔봄'" class="fa-solid fa-check mr-1 text-[10px]"></i>
                             {{ status }}
                         </button>
+                        </div>
                     </div>
 
                     <!-- IBA 공식 레시피 그리드 -->
@@ -1375,10 +1449,10 @@
                                 <div v-if="currentTab === 'substitutions'" class="substitution-layout-fix space-y-6 mobile-section mobile-section-substitutions">
                                     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                                         <div>
-                                            <div class="flex items-center space-x-3 mb-1">
-                                                <span class="px-2.5 py-0.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[11px] font-bold rounded-md">Substitution Rules</span>
-                                                <h2 class="text-3xl font-bold tracking-tight text-white">재료 대체 설정</h2>
+                                            <div class="mb-2">
+                                                <span class="inline-flex px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-[10px] font-bold tracking-[.08em] rounded-lg">Substitution Rules</span>
                                             </div>
+                                            <h2 class="text-3xl font-bold tracking-tight text-white">재료 대체 설정</h2>
                                             <p class="text-sm text-zinc-400">자주 쓰이는 대체 재료를 기본으로 제공하고, 내 취향에 맞게 활성화·비활성화하거나 직접 추가하세요. 활성화된 규칙만 IBA 스마트 추천에 반영됩니다.</p>
                                         </div>
                                         <div class="flex items-center gap-2">
@@ -1531,7 +1605,7 @@
         <!-- 술 추가 건의 모달 -->
         <div v-if="suggestionModal" class="fixed inset-0 z-[70] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
             <div class="bg-[#12141c] border border-emerald-500/20 rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-5">
-                <div class="flex items-center justify-between"><div><h3 class="text-lg font-bold text-white">술 추가 건의</h3><p class="text-[10px] text-zinc-500 mt-1">관리자가 확인 후 전체 술 도감에 등록합니다.</p></div><button @click="closeSuggestionModal" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button></div>
+                <div class="flex items-center justify-between"><div><h3 class="text-lg font-bold text-white">추가 요청</h3><p class="text-[10px] text-zinc-500 mt-1">관리자가 확인 후 전체 술 도감에 등록합니다.</p></div><button @click="closeSuggestionModal" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button></div>
                 <div class="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
                     <div><label class="block text-[10px] text-zinc-500 mb-1">제품명 *</label><input v-model="suggestionForm.name" placeholder="예: Hendrick's Gin" class="w-full bg-[#181b24] border border-[#27272a] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"></div>
                     <div><label class="block text-[10px] text-zinc-500 mb-1">브랜드 / 제조사</label><input v-model="suggestionForm.brand" placeholder="예: Hendrick's" class="w-full bg-[#181b24] border border-[#27272a] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"></div>
@@ -1636,7 +1710,7 @@
         <div v-if="showCustomCellarModal" class="fixed inset-0 z-[55] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
             <div class="bg-[#12141c] border border-emerald-500/20 rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-5">
                 <div class="flex justify-between items-center border-b border-[#1f2833] pb-3">
-                    <div><h3 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-solid fa-wine-bottle text-emerald-400"></i><span>내 술 추가</span></h3><p class="text-[11px] text-zinc-500 mt-1">전체 술 도감에는 등록하지 않고, 내 술장에만 추가됩니다.</p></div>
+                    <div><h3 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-solid fa-wine-bottle text-emerald-400"></i><span>술 추가</span></h3><p class="text-[11px] text-zinc-500 mt-1">전체 술 도감에는 등록하지 않고, 내 술장에만 추가됩니다.</p></div>
                     <button @click="closeCustomCellarModal" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -5419,22 +5493,22 @@
 
                 // 공식 IBA 레시피를 변경하지 않고, 사용자가 보유한 재료로 시도할 수 있는 커스텀 대체안만 제안합니다.
                 const defaultSubstitutionRules = [
-                    { from: '라임즙', to: '레몬즙', note: '시트러스 산미 대체', enabled: true, source: 'default' },
-                    { from: '레몬즙', to: '라임즙', note: '시트러스 산미 대체', enabled: true, source: 'default' },
-                    { from: '오렌지 주스', to: '자몽 주스', note: '시트러스 주스 계열 대체', enabled: true, source: 'default' },
-                    { from: '오렌지 주스', to: '파인애플 주스', note: '트로피컬 계열 대체', enabled: true, source: 'default' },
-                    { from: '파인애플 주스', to: '오렌지 주스', note: '트로피컬 주스 대체', enabled: true, source: 'default' },
-                    { from: '설탕 시럽', to: '꿀 시럽', note: '단맛 시럽 대체', enabled: true, source: 'default' },
-                    { from: '설탕 시럽', to: '아가베 시럽', note: '단맛 시럽 대체', enabled: true, source: 'default' },
-                    { from: '그레나딘 시럽', to: '라즈베리 시럽', note: '붉은 과실 시럽 대체', enabled: true, source: 'default' },
-                    { from: '탄산수', to: '스파클링 워터', note: '무가당 탄산수 대체', enabled: true, source: 'default' },
-                    { from: '탄산수', to: '소다수', note: '무가당 탄산수 대체', enabled: true, source: 'default' },
+                    { from: '라임즙', to: '레몬즙', note: '시트러스 산미 대체', enabled: false, source: 'default' },
+                    { from: '레몬즙', to: '라임즙', note: '시트러스 산미 대체', enabled: false, source: 'default' },
+                    { from: '오렌지 주스', to: '자몽 주스', note: '시트러스 주스 계열 대체', enabled: false, source: 'default' },
+                    { from: '오렌지 주스', to: '파인애플 주스', note: '트로피컬 계열 대체', enabled: false, source: 'default' },
+                    { from: '파인애플 주스', to: '오렌지 주스', note: '트로피컬 주스 대체', enabled: false, source: 'default' },
+                    { from: '설탕 시럽', to: '꿀 시럽', note: '단맛 시럽 대체', enabled: false, source: 'default' },
+                    { from: '설탕 시럽', to: '아가베 시럽', note: '단맛 시럽 대체', enabled: false, source: 'default' },
+                    { from: '그레나딘 시럽', to: '라즈베리 시럽', note: '붉은 과실 시럽 대체', enabled: false, source: 'default' },
+                    { from: '탄산수', to: '스파클링 워터', note: '무가당 탄산수 대체', enabled: false, source: 'default' },
+                    { from: '탄산수', to: '소다수', note: '무가당 탄산수 대체', enabled: false, source: 'default' },
                     { from: '토닉워터', to: '탄산수', note: '탄산 베이스 대체', enabled: false, source: 'default' },
-                    { from: '진저비어', to: '진저에일', note: '생강 탄산음료 대체', enabled: true, source: 'default' },
-                    { from: '생크림', to: '휘핑크림', note: '크림류 대체', enabled: true, source: 'default' },
-                    { from: '계란흰자', to: '아쿠아파바', note: '폼 형성 재료 대체', enabled: true, source: 'default' }
+                    { from: '진저비어', to: '진저에일', note: '생강 탄산음료 대체', enabled: false, source: 'default' },
+                    { from: '생크림', to: '휘핑크림', note: '크림류 대체', enabled: false, source: 'default' },
+                    { from: '계란흰자', to: '아쿠아파바', note: '폼 형성 재료 대체', enabled: false, source: 'default' }
                 ];
-                const substitutionRules = ref(defaultSubstitutionRules.map(rule => ({ ...rule })));
+                const substitutionRules = ref(defaultSubstitutionRules.map(rule => ({ ...rule, enabled: false })));
 
                 const normalizeSubstitutionRule = (rule) => ({
                     from: String(rule?.from || '').trim(),
@@ -5490,7 +5564,7 @@
                 };
 
                 const restoreDefaultSubstitutions = () => {
-                    substitutionRules.value = defaultSubstitutionRules.map(rule => ({ ...rule }));
+                    substitutionRules.value = defaultSubstitutionRules.map(rule => ({ ...rule, enabled: false }));
                     resetSubstitutionForm();
                     triggerToast('기본 대체 규칙을 복원했습니다.');
                 };
