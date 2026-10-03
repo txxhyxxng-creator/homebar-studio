@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isAdmin() { return signedIn() && request.auth.token.admin == true; }
+    function hasActiveAccess() {
+      return signedIn() && (
+        isAdmin() || (
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)/access/meta)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)/access/meta).data.active == true &&
+          (!get(/databases/$(database)/documents/users/$(request.auth.uid)/access/meta).data.validFrom || get(/databases/$(database)/documents/users/$(request.auth.uid)/access/meta).data.validFrom <= request.time) &&
+          (!get(/databases/$(database)/documents/users/$(request.auth.uid)/access/meta).data.validUntil || get(/databases/$(database)/documents/users/$(request.auth.uid)/access/meta).data.validUntil >= request.time)
+        )
+      );
+    }
+    match /catalog/{itemId} {
+      allow read: if hasActiveAccess();
+      allow create, update, delete: if isAdmin();
+    }
+    match /users/{userId}/data/{docId} {
+      allow read, write: if signedIn() && request.auth.uid == userId && hasActiveAccess();
+    }
+    match /users/{userId}/access/{docId} {
+      allow read: if signedIn() && request.auth.uid == userId;
+      allow write: if false;
+    }
+    match /accessKeys/{keyId} { allow read, write: if false; }
+    // 공개 설정은 로그인 전 화면에서도 아이콘/문의 링크를 표시해야 하므로 읽기는 공개합니다.
+    // 변경은 관리자 Custom Claim을 가진 계정만 가능합니다.
+    match /settings/public {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}
