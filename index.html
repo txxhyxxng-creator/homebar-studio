@@ -1480,7 +1480,7 @@
                     adminKeysLoading.value = true;
                     try {
                         const token = await getFirebaseIdToken();
-                        const data = await apiJson('/api/admin/keys', { headers: { Authorization: `Bearer ${token}` } });
+                        const data = await apiJson('/api/admin/key-list', { headers: { Authorization: `Bearer ${token}` } });
                         adminKeys.value = data.keys || [];
                     } catch (error) { triggerToast(error.message, 'error'); }
                     finally { adminKeysLoading.value = false; }
@@ -1492,7 +1492,7 @@
                     adminUsersError.value = '';
                     try {
                         const token = await getFirebaseIdToken();
-                        const data = await apiJson('/api/admin/users', { headers: { Authorization: `Bearer ${token}` } });
+                        const data = await apiJson('/api/admin/user-list', { headers: { Authorization: `Bearer ${token}` } });
                         adminUsers.value = Array.isArray(data.users) ? data.users : [];
                     } catch (error) {
                         console.error('관리자 사용자 목록 조회 실패:', error);
@@ -1514,7 +1514,7 @@
                     if (!confirm(`${newUntil}까지 이용 가능하도록 연장하고, 비활성/만료 키라면 다시 활성화할까요?`)) return;
                     try {
                         const token = await getFirebaseIdToken();
-                        await apiJson(`/api/admin/keys/${encodeURIComponent(item.id)}`, { method: 'PATCH', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ validFrom: item.validFrom, validUntil: newUntil, maxUsers: item.maxUsers, label: item.label, active: true }) });
+                        await apiJson(`/api/admin/key?keyId=${encodeURIComponent(item.id)}`, { method: 'PATCH', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ validFrom: item.validFrom, validUntil: newUntil, maxUsers: item.maxUsers, label: item.label, active: true }) });
                         await loadAdminKeys();
                         triggerToast('이용 키 기간을 연장하고 활성화했습니다.');
                     } catch (error) { triggerToast(error.message, 'error'); }
@@ -1524,7 +1524,7 @@
                     if (!confirm('비활성 또는 만료된 이용 키를 목록과 데이터베이스에서 완전히 삭제할까요? 등록 이력도 더 이상 이 키에서 확인할 수 없습니다.')) return;
                     try {
                         const token = await getFirebaseIdToken();
-                        await apiJson(`/api/admin/keys/${encodeURIComponent(keyId)}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+                        await apiJson(`/api/admin/key?keyId=${encodeURIComponent(keyId)}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
                         if (keyExpandedId.value === keyId) keyExpandedId.value = null;
                         await loadAdminKeys();
                         triggerToast('이용 키를 완전히 삭제했습니다.');
@@ -1536,7 +1536,7 @@
                     if (adminKeyForm.validUntil < adminKeyForm.validFrom) return triggerToast('종료일은 시작일 이후여야 합니다.', 'error');
                     try {
                         const token = await getFirebaseIdToken();
-                        const data = await apiJson('/api/admin/keys', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ ...adminKeyForm, maxUsers: Number(adminKeyForm.maxUsers) || 1 }) });
+                        const data = await apiJson('/api/admin/key-list', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ ...adminKeyForm, maxUsers: Number(adminKeyForm.maxUsers) || 1 }) });
                         generatedAccessKey.value = data.key;
                         adminKeyForm.label = '';
                         await loadAdminKeys();
@@ -1549,7 +1549,7 @@
                     const item = adminKeys.value.find(key => key.id === keyId);
                     try {
                         const token = await getFirebaseIdToken();
-                        await apiJson(`/api/admin/keys/${encodeURIComponent(keyId)}`, {
+                        await apiJson(`/api/admin/key?keyId=${encodeURIComponent(keyId)}`, {
                             method: 'PATCH',
                             headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
                             body: JSON.stringify({
