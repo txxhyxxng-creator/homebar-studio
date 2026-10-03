@@ -242,9 +242,9 @@
 
 
 
-            /* 모바일 주요 목록: 한 줄에 카드 2개 */
+            /* 모바일 주요 목록: 한 줄에 카드 1개 */
             .mobile-two-col-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                grid-template-columns: minmax(0, 1fr) !important;
                 gap: .7rem !important;
                 align-items: stretch;
             }
@@ -287,7 +287,7 @@
             .mobile-substitution-grid > div > div:last-child button { padding: .38rem .3rem !important; font-size: .56rem !important; }
 
             @media (max-width: 370px) {
-                .mobile-two-col-grid { gap: .5rem !important; }
+                .mobile-two-col-grid { gap: .75rem !important; }
                 .mobile-catalog-grid > div, .mobile-cellar-grid > div, .mobile-ingredient-grid > div, .mobile-substitution-grid > div { padding: .58rem !important; }
                 .mobile-catalog-grid > div .h-56 { height: 8rem !important; }
                 .mobile-catalog-grid > div .h-44 { height: 6.2rem !important; }
@@ -924,7 +924,7 @@
                         <nav class="space-y-1">
                             <button @click="currentTab = 'catalog'; sidebarOpen = false" :class="currentTab === 'catalog' ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/30 font-semibold' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-transparent text-sm text-left transition">
                                 <i class="fa-solid fa-book-open w-5 text-indigo-400"></i>
-                                <span>전체 술 도감 (Catalog)</span>
+                                <span>카탈로그 (Catalog)</span>
                             </button>
                             <button @click="currentTab = 'cellar'; sidebarOpen = false" :class="currentTab === 'cellar' ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/30 font-semibold' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-transparent text-sm text-left transition">
                                 <i class="fa-solid fa-wine-bottle w-5 text-emerald-400"></i>
@@ -933,7 +933,7 @@
                             <!-- ✨ 신규 추가: 기타 재료 관리 탭 -->
                             <button @click="currentTab = 'nonAlcoholic'; sidebarOpen = false" :class="currentTab === 'nonAlcoholic' ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/30 font-semibold' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-transparent text-sm text-left transition">
                                 <i class="fa-solid fa-lemon w-5 shrink-0 text-amber-400"></i>
-                                <span class="text-left">기타 재료 관리 (Ingredients)</span>
+                                <span class="text-left">칵테일 재료 (Ingredients)</span>
                             </button>
                             <button @click="currentTab = 'substitutions'; sidebarOpen = false" :class="currentTab === 'substitutions' ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/30 font-semibold' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-transparent text-sm text-left transition">
                                 <i class="fa-solid fa-arrows-rotate w-5 text-emerald-400"></i>
@@ -941,7 +941,7 @@
                             </button>
                             <button @click="currentTab = 'ibaDirectory'; sidebarOpen = false" :class="currentTab === 'ibaDirectory' ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/30 font-semibold' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-transparent text-sm text-left transition">
                                 <i class="fa-solid fa-list-check w-5 text-indigo-400"></i>
-                                <span>IBA 공식 도감 (Directory)</span>
+                                <span>IBA 공식 도감</span>
                             </button>
                             <button @click="currentTab = 'recommend'; sidebarOpen = false" :class="currentTab === 'recommend' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 font-semibold' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-transparent text-sm text-left transition">
                                 <i class="fa-solid fa-wand-magic-sparkles w-5 text-amber-400"></i>
@@ -1107,7 +1107,7 @@
                     </div>
                 </div>
 
-                <!-- 1. 전체 술 도감 (Catalog) 탭 -->
+                <!-- 1. 카탈로그 (Catalog) 탭 -->
                 <div v-if="currentTab === 'catalog'" class="space-y-6 mobile-section mobile-section-catalog">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
@@ -1260,14 +1260,14 @@
                     </div>
                 </div>
 
-                <!-- 🍋 3. 기타 재료 관리 (Ingredients) 탭 -->
+                <!-- 🍋 3. 칵테일 재료 (Ingredients) 탭 -->
                 <div v-if="currentTab === 'nonAlcoholic'" class="space-y-6 mobile-section mobile-section-ingredients">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <div class="mb-2">
                                 <span class="inline-flex px-2.5 py-1 bg-amber-500/10 border border-amber-500/25 text-amber-300 text-[10px] font-bold tracking-[.08em] rounded-lg">Mixers & Garnishes</span>
                             </div>
-                            <h2 class="text-3xl font-bold tracking-tight text-white">기타 칵테일 재료 관리</h2>
+                            <h2 class="text-3xl font-bold tracking-tight text-white">칵테일 재료</h2>
                             <p class="text-sm text-zinc-400">주스, 시럽, 즙, 허브, 훈연, 음료 등 보유 중인 기타 재료를 관리하세요. IBA 추천 계산에 자동 반영됩니다.</p>
                         </div>
                         <div class="flex items-center space-x-3">
@@ -5958,11 +5958,11 @@
 
                 const getTabTitle = () => {
                     switch (currentTab.value) {
-                        case 'catalog': return '전체 술 도감 (Catalog)';
+                        case 'catalog': return '카탈로그 (Catalog)';
                         case 'cellar': return '내 술장 (Cellar)';
-                        case 'nonAlcoholic': return '기타 재료 관리 (Ingredients)';
+                        case 'nonAlcoholic': return '칵테일 재료 (Ingredients)';
                         case 'substitutions': return '재료 대체 설정 (Substitutions)';
-                        case 'ibaDirectory': return 'IBA 공식 도감 (Directory)';
+                        case 'ibaDirectory': return 'IBA 공식 도감';
                         case 'recommend': return 'IBA 스마트 추천';
                         case 'recipe': return '내 레시피 & 시음록';
                         case 'admin': return '관리자 센터';
