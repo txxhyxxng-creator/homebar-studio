@@ -2252,14 +2252,26 @@
                     return `${Math.max(1, minutes)}분 남음`;
                 });
 
-                const applyWebIcon = (icon) => {
+                const WEB_ICON_CACHE_KEY = 'bartail_web_icon_cache_v2';
+                const DEFAULT_FAVICON = 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2716%27 fill=%27%231a2440%27/%3E%3Ctext x=%2732%27 y=%2741%27 text-anchor=%27middle%27 font-family=%27Arial%27 font-size=%2724%27 font-weight=%27700%27 fill=%27white%27%3EBT%3C/text%3E%3C/svg%3E';
+
+                const applyWebIcon = (icon, persist = true) => {
                     webIcon.value = String(icon || '').trim();
-                    const link = document.getElementById('bartail-favicon');
-                    if (link) {
-                        if (webIcon.value) { link.href = webIcon.value; }
-                        else { link.href = 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2716%27 fill=%27%231a2440%27/%3E%3Ctext x=%2732%27 y=%2741%27 text-anchor=%27middle%27 font-family=%27Arial%27 font-size=%2724%27 font-weight=%27700%27 fill=%27white%27%3EBT%3C/text%3E%3C/svg%3E'; }
+                    if (persist) {
+                        try {
+                            if (webIcon.value) localStorage.setItem(WEB_ICON_CACHE_KEY, webIcon.value);
+                            else localStorage.removeItem(WEB_ICON_CACHE_KEY);
+                        } catch (_) {}
                     }
+                    const link = document.getElementById('bartail-favicon');
+                    if (link) link.href = webIcon.value || DEFAULT_FAVICON;
                 };
+
+                // 서버 응답을 기다리는 동안에도 마지막으로 저장된 아이콘을 즉시 보여줍니다.
+                try {
+                    const cachedIcon = localStorage.getItem(WEB_ICON_CACHE_KEY);
+                    if (cachedIcon) applyWebIcon(cachedIcon, false);
+                } catch (_) {}
 
                 const compressWebIcon = (file) => new Promise((resolve, reject) => {
                     const reader = new FileReader();
@@ -2268,16 +2280,22 @@
                         const img = new Image();
                         img.onerror = () => reject(new Error('지원하지 않는 이미지입니다.'));
                         img.onload = () => {
-                            const size = 256;
-                            const canvas = document.createElement('canvas');
-                            canvas.width = size; canvas.height = size;
-                            const ctx = canvas.getContext('2d');
-                            ctx.clearRect(0, 0, size, size);
-                            const scale = Math.min(size / img.width, size / img.height);
-                            const w = Math.max(1, Math.round(img.width * scale));
-                            const h = Math.max(1, Math.round(img.height * scale));
-                            ctx.drawImage(img, Math.round((size-w)/2), Math.round((size-h)/2), w, h);
-                            resolve(canvas.toDataURL('image/webp', 0.86));
+                            const render = (size, quality) => {
+                                const canvas = document.createElement('canvas');
+                                canvas.width = size; canvas.height = size;
+                                const ctx = canvas.getContext('2d');
+                                ctx.clearRect(0, 0, size, size);
+                                const scale = Math.min(size / img.width, size / img.height);
+                                const w = Math.max(1, Math.round(img.width * scale));
+                                const h = Math.max(1, Math.round(img.height * scale));
+                                ctx.drawImage(img, Math.round((size-w)/2), Math.round((size-h)/2), w, h);
+                                return canvas.toDataURL('image/webp', quality);
+                            };
+                            // Firestore 1MiB 제한을 피하도록 작은 WebP로 안정적으로 저장합니다.
+                            let result = render(192, 0.72);
+                            if (result.length > 300000) result = render(128, 0.58);
+                            if (result.length > 300000) return reject(new Error('이미지를 충분히 압축하지 못했습니다. 더 작은 사진을 사용해주세요.'));
+                            resolve(result);
                         };
                         img.src = reader.result;
                     };
@@ -2300,7 +2318,7 @@
                     try {
                         const token = await getFirebaseIdToken();
                         const nextIcon = webIconForm.remove ? '' : (webIconForm.preview || webIcon.value || '');
-                        const data = await apiJson('/api/admin-settings', { method: 'PATCH', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ contactLink: { label: contactLinkForm.label, url: contactLinkForm.url }, webIcon: nextIcon }) });
+                        const data = await apiJson('/api/admin-settings', { cache: 'no-store', method: 'PATCH', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ contactLink: { label: contactLinkForm.label, url: contactLinkForm.url }, webIcon: nextIcon }) });
                         applyWebIcon(data.webIcon || '');
                         webIconForm.preview = '';
                         webIconForm.remove = false;
@@ -2310,7 +2328,7 @@
 
                 const loadPublicSettings = async () => {
                     try {
-                        const data = await apiJson('/api/public-settings', { method: 'GET', headers: {} });
+                        const data = await apiJson(`/api/public-settings?t=${Date.now()}`, { cache: 'no-store', method: 'GET', headers: {} });
                         contactLink.label = data.contactLink?.label || '이용 문의 · 키 받기';
                         contactLink.url = data.contactLink?.url || '';
                         contactLinkForm.label = contactLink.label;
