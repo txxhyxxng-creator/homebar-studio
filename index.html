@@ -831,7 +831,10 @@
         <div v-if="!hasServiceAccess" class="fixed inset-0 z-[200] auth-shell flex items-center justify-center p-4 overflow-y-auto">
             <div class="auth-glass w-full max-w-md rounded-[2rem] p-7 sm:p-9 my-8">
                 <div class="text-center mb-7">
-                    <div class="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-indigo-500 flex items-center justify-center text-white shadow-xl shadow-emerald-500/10 mb-4"><i class="fa-solid fa-cocktail text-xl"></i></div>
+                    <div class="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-indigo-500 flex items-center justify-center text-white shadow-xl shadow-emerald-500/10 mb-4 overflow-hidden border border-white/10">
+                        <img v-if="webIcon" :src="webIcon" alt="BarTail 웹 아이콘" class="w-full h-full object-cover">
+                        <i v-else class="fa-solid fa-cocktail text-xl"></i>
+                    </div>
                     <div class="text-[10px] tracking-[.28em] uppercase text-emerald-300 font-bold mb-2">BarTail</div>
                     <h2 class="text-2xl font-extrabold text-white">{{ firebaseReady && currentUser ? '서비스 이용 권한' : (authMode === 'login' ? '로그인' : '회원가입') }}</h2>
                     <p class="text-xs text-zinc-500 mt-2">{{ firebaseReady && currentUser ? '관리자가 발급한 유효한 이용 키가 필요합니다.' : '계정과 이용 키로 안전하게 시작하세요.' }}</p>
@@ -904,7 +907,10 @@
                 </button>
                 <div class="flex items-center space-x-2 text-sm text-zinc-400">
                     <span class="hover:text-white cursor-pointer font-extrabold tracking-tight text-indigo-400 flex items-center space-x-2" @click="currentTab = 'catalog'">
-                        <i class="fa-solid fa-cocktail text-indigo-500"></i>
+                        <span class="w-6 h-6 rounded-lg overflow-hidden bg-gradient-to-tr from-emerald-600 to-indigo-600 flex items-center justify-center text-white shrink-0">
+                            <img v-if="webIcon" :src="webIcon" alt="BarTail 웹 아이콘" class="w-full h-full object-cover">
+                            <i v-else class="fa-solid fa-cocktail text-[11px]"></i>
+                        </span>
                         <span>BarTail</span>
                     </span>
                     <i class="fa-solid fa-chevron-right text-xs text-zinc-600"></i>
@@ -917,13 +923,19 @@
                     <span>2024 IBA Official Database</span>
                 </div>
                 <div v-if="currentUser" class="flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-xl bg-[#12141c]/90 border border-[#27272a]">
-                    <span class="w-7 h-7 rounded-lg bg-gradient-to-tr from-emerald-600 to-indigo-600 flex items-center justify-center text-white text-[10px] font-bold overflow-hidden"><img v-if="webIcon" :src="webIcon" alt="BarTail 아이콘" class="w-full h-full object-cover"><span v-else>{{ isAdmin ? 'A' : 'BT' }}</span></span>
+                    <span class="w-7 h-7 rounded-lg bg-gradient-to-tr from-emerald-600 to-indigo-600 flex items-center justify-center text-white text-[10px] font-bold overflow-hidden border border-white/10">
+                        <img v-if="webIcon" :src="webIcon" alt="BarTail 웹 아이콘" class="w-full h-full object-cover">
+                        <span v-else>{{ isAdmin ? 'A' : 'BT' }}</span>
+                    </span>
                     <div class="user-header-details leading-tight max-w-[180px]"><div class="text-[10px] text-zinc-400 truncate">{{ currentUser.email }}</div><div class="text-[9px]" :class="isAdmin ? 'text-emerald-300' : 'text-indigo-300'">{{ isAdmin ? 'Administrator' : 'Authorized User' }}</div></div>
                     <div v-if="!isAdmin && hasServiceAccess" class="hidden xl:flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-bold text-emerald-300" title="이용권 남은 시간"><i class="fa-regular fa-clock"></i><span>{{ accessRemainingText }}</span></div>
                     <div v-if="!isAdmin && hasServiceAccess" class="mobile-access-badge hidden items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-bold text-emerald-300 max-w-[7rem]" title="이용권 남은 시간"><i class="fa-regular fa-clock"></i><span class="truncate">{{ accessRemainingText }}</span></div>
                     <button @click="signOutUser" aria-label="로그아웃" class="ml-1 w-9 h-9 flex items-center justify-center rounded-lg text-zinc-500 hover:text-white hover:bg-white/5" title="로그아웃"><i class="fa-solid fa-right-from-bracket text-xs"></i></button>
                 </div>
-                <div v-else class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-bold text-xs shadow-md overflow-hidden"><img v-if="webIcon" :src="webIcon" alt="BarTail 아이콘" class="w-full h-full object-cover"><span v-else>BT</span></div>
+                <div v-else class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-bold text-xs shadow-md overflow-hidden border border-white/10">
+                    <img v-if="webIcon" :src="webIcon" alt="BarTail 웹 아이콘" class="w-full h-full object-cover">
+                    <span v-else>BT</span>
+                </div>
             </div>
         </header>
 
