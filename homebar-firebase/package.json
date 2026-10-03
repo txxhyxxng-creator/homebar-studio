@@ -1,0 +1,9 @@
+{
+  "name": "homebar-studio-firebase",
+  "private": true,
+  "version": "1.0.0",
+  "description": "HomeBar Studio Firebase + Vercel integration",
+  "dependencies": {
+    "firebase-admin": "^13.5.0"
+  }
+}
