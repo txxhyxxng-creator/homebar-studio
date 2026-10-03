@@ -263,11 +263,11 @@
                 <div class="p-5 border-t border-[#1f2833]">
                     <h2 class="text-[11px] font-bold tracking-wider text-zinc-500 uppercase mb-3">Data Management</h2>
                     <div class="space-y-2">
-                        <button @click="exportData" class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-xl bg-[#151922] hover:bg-[#1f2833] border border-[#27272a] text-xs font-medium text-zinc-300 transition">
+                        <button @click="exportData" v-if="isAdmin" class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-xl bg-[#151922] hover:bg-[#1f2833] border border-[#27272a] text-xs font-medium text-zinc-300 transition">
                             <i class="fa-solid fa-download text-indigo-400"></i>
                             <span>데이터 JSON 내보내기</span>
                         </button>
-                        <label class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-xl bg-[#151922] hover:bg-[#1f2833] border border-[#27272a] text-xs font-medium text-zinc-300 transition cursor-pointer">
+                        <label v-if="isAdmin" class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-xl bg-[#151922] hover:bg-[#1f2833] border border-[#27272a] text-xs font-medium text-zinc-300 transition cursor-pointer">
                             <i class="fa-solid fa-upload text-violet-400"></i>
                             <span>데이터 JSON 가져오기</span>
                             <input type="file" @change="importData" accept=".json" class="hidden">
@@ -412,36 +412,55 @@
 
                 <!-- 2. 내 술장 (Cellar) 탭 -->
                 <div v-if="currentTab === 'cellar'" class="space-y-6">
-                    <div>
-                        <h2 class="text-3xl font-bold tracking-tight text-white">내 술장 (Cellar)</h2>
-                        <p class="text-sm text-zinc-400 mt-1">현재 내 홈 바에 보유 중인 실재고 주류 라인업입니다.</p>
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-3xl font-bold tracking-tight text-white">내 술장 (Cellar)</h2>
+                            <p class="text-sm text-zinc-400 mt-1">도감에 등록된 주류와 나만 추가한 개인 주류를 함께 관리하세요.</p>
+                        </div>
+                        <button @click="openCustomCellarModal" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-plus"></i><span>내 술 추가</span>
+                        </button>
                     </div>
-                    <div v-if="ownedCatalog.length === 0" class="bg-[#12141c] border border-[#1f2833] rounded-3xl p-12 text-center space-y-3">
+
+                    <div v-if="ownedCatalog.length === 0 && customCellar.length === 0" class="bg-[#12141c] border border-[#1f2833] rounded-3xl p-12 text-center space-y-3">
                         <i class="fa-solid fa-wine-bottle text-4xl text-zinc-600"></i>
-                        <p class="text-zinc-400 text-sm">보유 중인 주류가 없습니다. 도감에서 술을 보유로 체크해보세요!</p>
-                        <button @click="currentTab = 'catalog'" class="px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-xl">도감으로 가기</button>
+                        <p class="text-zinc-400 text-sm">보유 중인 주류가 없습니다. 도감에서 술을 보유로 체크하거나 내 술을 직접 추가해보세요!</p>
+                        <div class="flex items-center justify-center gap-2">
+                            <button @click="currentTab = 'catalog'" class="px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-xl">도감으로 가기</button>
+                            <button @click="openCustomCellarModal" class="px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-xl">내 술 추가</button>
+                        </div>
                     </div>
-                    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div v-for="item in ownedCatalog" :key="item.id" class="bg-[#12141c] border border-[#1f2833] rounded-3xl p-5 shadow-xl flex flex-col justify-between">
-                            <div>
-                                <div class="flex items-center justify-between mb-4">
-                                    <div class="flex items-center space-x-2">
-                                        <span class="px-3 py-1 bg-[#1a1d26] border border-[#27272a] text-zinc-200 text-xs font-semibold rounded-lg">{{ item.category }}</span>
-                                        <span class="px-2.5 py-1 bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-xs font-mono font-bold rounded-lg">{{ item.abv ?? 0 }}% ABV</span>
+
+                    <div v-if="ownedCatalog.length > 0" class="space-y-3">
+                        <div class="flex items-center gap-2"><span class="px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[11px] font-bold rounded-lg">CATALOG</span><h3 class="text-sm font-bold text-zinc-200">도감 주류</h3></div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div v-for="item in ownedCatalog" :key="item.id" class="bg-[#12141c] border border-[#1f2833] rounded-3xl p-5 shadow-xl flex flex-col justify-between">
+                                <div>
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="flex items-center space-x-2"><span class="px-3 py-1 bg-[#1a1d26] border border-[#27272a] text-zinc-200 text-xs font-semibold rounded-lg">{{ item.category }}</span><span class="px-2.5 py-1 bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-xs font-mono font-bold rounded-lg">{{ item.abv ?? 0 }}% ABV</span></div>
+                                        <span class="px-3 py-1 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-lg">보유중</span>
                                     </div>
-                                    <span class="px-3 py-1 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-lg">보유중</span>
+                                    <div class="w-full h-56 bg-gradient-to-b from-[#181c27] to-[#0d0f17] rounded-2xl border border-[#232936] flex items-center justify-center mb-4"><img :src="item.image" alt="bottle" class="h-44 object-contain drop-shadow-md" @error="handleImageError"></div>
+                                    <div class="space-y-1 mb-3"><div class="text-xs font-semibold text-indigo-400">{{ item.brand }}</div><h3 class="text-lg font-bold text-white">{{ item.name }}</h3></div>
                                 </div>
-                                <div class="w-full h-56 bg-gradient-to-b from-[#181c27] to-[#0d0f17] rounded-2xl border border-[#232936] flex items-center justify-center mb-4">
-                                    <img :src="item.image" alt="bottle" class="h-44 object-contain drop-shadow-md" @error="handleImageError">
-                                </div>
-                                <div class="space-y-1 mb-3">
-                                    <div class="text-xs font-semibold text-indigo-400">{{ item.brand }}</div>
-                                    <h3 class="text-lg font-bold text-white">{{ item.name }}</h3>
-                                </div>
+                                <div class="mt-6 pt-4 border-t border-[#1f2833] flex justify-between items-center"><span class="text-xs text-zinc-500">도감 주류</span><button @click="setStatus(item, 'none')" class="px-3 py-1.5 bg-[#181b24] hover:bg-red-500/20 hover:text-red-400 border border-[#27272a] text-zinc-400 rounded-xl text-xs transition">보유 해제</button></div>
                             </div>
-                            <div class="mt-6 pt-4 border-t border-[#1f2833] flex justify-between items-center">
-                                <span class="text-xs text-zinc-500">상태 변경</span>
-                                <button @click="setStatus(item, 'none')" class="px-3 py-1.5 bg-[#181b24] hover:bg-red-500/20 hover:text-red-400 border border-[#27272a] text-zinc-400 rounded-xl text-xs transition">보유 해제</button>
+                        </div>
+                    </div>
+
+                    <div v-if="customCellar.length > 0" class="space-y-3">
+                        <div class="flex items-center gap-2"><span class="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[11px] font-bold rounded-lg">PERSONAL</span><h3 class="text-sm font-bold text-zinc-200">내가 직접 추가한 술</h3></div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div v-for="item in customCellar" :key="item.id" class="bg-[#12141c] border border-emerald-500/20 rounded-3xl p-5 shadow-xl flex flex-col justify-between">
+                                <div>
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="flex items-center space-x-2"><span class="px-3 py-1 bg-[#1a1d26] border border-[#27272a] text-zinc-200 text-xs font-semibold rounded-lg">{{ item.category }}</span><span class="px-2.5 py-1 bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-xs font-mono font-bold rounded-lg">{{ item.abv ?? 0 }}% ABV</span></div>
+                                        <span class="px-3 py-1 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-lg">보유중</span>
+                                    </div>
+                                    <div class="w-full h-56 bg-gradient-to-b from-[#181c27] to-[#0d0f17] rounded-2xl border border-[#232936] flex items-center justify-center mb-4"><img :src="item.image || fallbackBottleImage" alt="bottle" class="h-44 object-contain drop-shadow-md" @error="handleImageError"></div>
+                                    <div class="space-y-1 mb-3"><div class="text-xs font-semibold text-emerald-400">{{ item.brand || '개인 등록' }}</div><h3 class="text-lg font-bold text-white">{{ item.name }}</h3></div>
+                                </div>
+                                <div class="mt-6 pt-4 border-t border-[#1f2833] flex justify-between items-center"><span class="text-xs text-zinc-500">개인 술장</span><button @click="removeCustomCellarItem(item)" class="px-3 py-1.5 bg-[#181b24] hover:bg-red-500/20 hover:text-red-400 border border-[#27272a] text-zinc-400 rounded-xl text-xs transition">삭제</button></div>
                             </div>
                         </div>
                     </div>
@@ -1079,6 +1098,25 @@
             </div>
         </div>
 
+        <!-- 개인 술장 추가 모달 -->
+        <div v-if="showCustomCellarModal" class="fixed inset-0 z-[55] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+            <div class="bg-[#12141c] border border-emerald-500/20 rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-5">
+                <div class="flex justify-between items-center border-b border-[#1f2833] pb-3">
+                    <div><h3 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-solid fa-wine-bottle text-emerald-400"></i><span>내 술 추가</span></h3><p class="text-[11px] text-zinc-500 mt-1">전체 술 도감에는 등록하지 않고, 내 술장에만 추가됩니다.</p></div>
+                    <button @click="closeCustomCellarModal" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2"><label class="block text-xs font-medium text-zinc-400 mb-1">술 이름 <span class="text-red-400">*</span></label><input type="text" v-model="customCellarForm.name" placeholder="예: 메이커스 마크" class="w-full bg-[#181b24] border border-[#27272a] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"></div>
+                    <div><label class="block text-xs font-medium text-zinc-400 mb-1">브랜드</label><input type="text" v-model="customCellarForm.brand" placeholder="예: Maker's Mark" class="w-full bg-[#181b24] border border-[#27272a] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"></div>
+                    <div><label class="block text-xs font-medium text-zinc-400 mb-1">카테고리</label><select v-model="customCellarForm.category" class="w-full bg-[#181b24] border border-[#27272a] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"><option v-for="cat in categories.filter(c => c !== '전체')" :key="cat" :value="cat">{{ cat }}</option></select></div>
+                    <div><label class="block text-xs font-medium text-zinc-400 mb-1">알코올 도수 (%)</label><input type="number" step="0.1" min="0" max="100" v-model.number="customCellarForm.abv" placeholder="예: 40" class="w-full bg-[#181b24] border border-[#27272a] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono"></div>
+                    <div><label class="block text-xs font-medium text-zinc-400 mb-1">이미지 URL <span class="text-zinc-600">(선택)</span></label><input type="text" v-model="customCellarForm.image" placeholder="https://..." class="w-full bg-[#181b24] border border-[#27272a] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"></div>
+                </div>
+                <div class="bg-emerald-500/5 border border-emerald-500/15 rounded-2xl p-3 text-[11px] text-zinc-400"><i class="fa-solid fa-circle-info text-emerald-400 mr-1"></i>이 항목은 <span class="text-emerald-300 font-semibold">현재 로그인한 계정의 개인 술장</span>에만 저장됩니다.</div>
+                <div class="flex justify-end gap-2 pt-2 border-t border-[#1f2833]"><button @click="closeCustomCellarModal" class="px-4 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:bg-[#181b24]">취소</button><button @click="saveCustomCellarItem" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-md">내 술장에 추가</button></div>
+            </div>
+        </div>
+
         <!-- 레시피 작성/수정 모달 (Recipe Modal) -->
         <div v-if="openRecipeModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
             <div class="bg-[#12141c] border border-[#1f2833] rounded-3xl p-6 w-full max-w-xl shadow-2xl space-y-5">
@@ -1673,6 +1711,10 @@
                 const customAmountInput = ref('');
 
                 const itemForm = reactive({ name: '', brand: '', category: '위스키', abv: 40, status: 'none', image: '', imageSource: '', imageSourcePage: '' });
+                const showCustomCellarModal = ref(false);
+                const customCellar = ref([]);
+                const customCellarForm = reactive({ name: '', brand: '', category: '위스키', abv: 40, image: '' });
+                const fallbackBottleImage = 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=500&auto=format&fit=crop&q=60';
                 const imageSearchResults = ref([]);
                 const imageSearchLoading = ref(false);
                 const recipeForm = reactive({ name: '', category: '커스텀', description: '', ingredients: [] });
@@ -4733,6 +4775,37 @@
                 };
 
 
+                const normalizeCustomCellarItem = (item, index = 0) => ({
+                    id: String(item?.id || `personal_cellar_${Date.now()}_${index}`),
+                    name: String(item?.name || '').trim(),
+                    brand: String(item?.brand || '').trim(),
+                    category: String(item?.category || '기타'),
+                    abv: Number(item?.abv || 0),
+                    image: String(item?.image || '').trim(),
+                    status: 'owned'
+                });
+
+                const resetCustomCellarForm = () => Object.assign(customCellarForm, { name: '', brand: '', category: '위스키', abv: 40, image: '' });
+                const openCustomCellarModalFn = () => { resetCustomCellarForm(); showCustomCellarModal.value = true; };
+                const closeCustomCellarModal = () => { showCustomCellarModal.value = false; resetCustomCellarForm(); };
+                const saveCustomCellarItem = () => {
+                    const name = customCellarForm.name.trim();
+                    if (!name) return triggerToast('술 이름을 입력해주세요.', 'error');
+                    const duplicate = customCellar.value.some(item => normalizeIngredientName(item.name) === normalizeIngredientName(name) && normalizeIngredientName(item.brand || '') === normalizeIngredientName(customCellarForm.brand || ''));
+                    if (duplicate) return triggerToast('이미 내 술장에 같은 술이 등록되어 있습니다.', 'error');
+                    customCellar.value.unshift(normalizeCustomCellarItem({ id: `personal_cellar_${Date.now()}`, name, brand: customCellarForm.brand, category: customCellarForm.category, abv: customCellarForm.abv, image: customCellarForm.image }));
+                    scheduleUserSync();
+                    closeCustomCellarModal();
+                    triggerToast(`'${name}'을(를) 내 술장에 추가했습니다.`);
+                };
+                const removeCustomCellarItem = (item) => {
+                    openConfirmModal('개인 술 삭제', `'${item.name}'을(를) 내 술장에서 삭제할까요?`, () => {
+                        customCellar.value = customCellar.value.filter(x => x.id !== item.id);
+                        scheduleUserSync();
+                        triggerToast('개인 술장에서 삭제했습니다.');
+                    });
+                };
+
                 // Firebase Cloud 데이터 복원 / 저장
                 const safeParseStorage = (key, fallback) => {
                     try { const raw = localStorage.getItem(key); return raw ? (JSON.parse(raw) ?? fallback) : fallback; }
@@ -4760,6 +4833,7 @@
                     const local = userDoc.exists ? (userDoc.data() || {}) : {};
                     const cellar = local.cellar || {};
                     catalog.value.forEach(item => { item.status = cellar[item.id] || 'none'; });
+                    if (Array.isArray(local.customCellar)) customCellar.value = local.customCellar.map(normalizeCustomCellarItem).filter(x => x.name);
                     if (Array.isArray(local.nonAlcoholic)) defaultNonAlcoholicIngredients.value = local.nonAlcoholic.map(normalizeStoredIngredient).filter(x => x.name);
                     if (Array.isArray(local.recipes)) recipes.value = local.recipes;
                     if (Array.isArray(local.substitutions)) substitutionRules.value = local.substitutions.map(normalizeSubstitutionRule).filter(x => x.from && x.to);
@@ -4768,11 +4842,13 @@
                     // 최초 로그인 사용자는 기존 localStorage 데이터를 1회 마이그레이션합니다.
                     if (!userDoc.exists) {
                         const oldCatalog = safeParseStorage('hbs_catalog', null);
+                        const oldCustomCellar = safeParseStorage('hbs_custom_cellar', null);
                         const oldNa = safeParseStorage('hbs_na_ingredients', null);
                         const oldRecipes = safeParseStorage('hbs_recipes', null);
                         const oldSubs = safeParseStorage('hbs_substitutions', null);
                         const oldMeta = safeParseStorage('hbs_iba_meta', null);
                         if (Array.isArray(oldCatalog)) catalog.value.forEach(item => { const found = oldCatalog.find(x => x.id === item.id); if (found?.status) item.status = found.status; });
+                        if (Array.isArray(oldCustomCellar)) customCellar.value = oldCustomCellar.map(normalizeCustomCellarItem).filter(x => x.name);
                         if (Array.isArray(oldNa)) defaultNonAlcoholicIngredients.value = oldNa.map(normalizeStoredIngredient).filter(x => x.name);
                         if (Array.isArray(oldRecipes)) recipes.value = oldRecipes;
                         if (Array.isArray(oldSubs)) substitutionRules.value = oldSubs.map(normalizeSubstitutionRule).filter(x => x.from && x.to);
@@ -4789,7 +4865,7 @@
                     const cellar = {};
                     catalog.value.forEach(item => { if (item.status && item.status !== 'none') cellar[item.id] = item.status; });
                     await firebaseDb.collection('users').doc(uid).collection('data').doc('main').set({
-                        cellar, nonAlcoholic: defaultNonAlcoholicIngredients.value, recipes: recipes.value,
+                        cellar, customCellar: customCellar.value, nonAlcoholic: defaultNonAlcoholicIngredients.value, recipes: recipes.value,
                         substitutions: substitutionRules.value, ibaMeta: JSON.parse(JSON.stringify(ibaMeta)),
                         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                     }, { merge: true });
@@ -4828,6 +4904,8 @@
                         const restored = savedCatalog.map(item => ({ ...item, name: String(item.name || '').trim(), brand: String(item.brand || '').trim(), status: item.status || 'none' }));
                         catalog.value = restored.concat(defaultCatalogSeed.filter(seed => !restored.some(item => item.id === seed.id)));
                     }
+                    const savedCustomCellar = safeParseStorage('hbs_custom_cellar', null);
+                    if (Array.isArray(savedCustomCellar)) customCellar.value = savedCustomCellar.map(normalizeCustomCellarItem).filter(x => x.name);
                     const savedNa = safeParseStorage('hbs_na_ingredients', null);
                     if (Array.isArray(savedNa)) defaultNonAlcoholicIngredients.value = savedNa.map(normalizeStoredIngredient).filter(x => x.name);
                     const savedRecipes = safeParseStorage('hbs_recipes', null);
@@ -4847,6 +4925,7 @@
                     scheduleUserSync();
                     scheduleCatalogSync();
                 }, { deep: true });
+                watch(customCellar, scheduleUserSync, { deep: true });
                 watch(defaultNonAlcoholicIngredients, scheduleUserSync, { deep: true });
                 watch(recipes, scheduleUserSync, { deep: true });
                 watch(ibaMeta, scheduleUserSync, { deep: true });
@@ -4927,9 +5006,7 @@
                 const ingredientNamesMatch = (a, b) => {
                     const aVariants = getIngredientVariants(a);
                     const bVariants = getIngredientVariants(b);
-                    return aVariants.some(av =>
-                        bVariants.some(bv => av === bv || av.includes(bv) || bv.includes(av))
-                    );
+                    return aVariants.some(av => bVariants.includes(av));
                 };
 
                 // 실제 보유 여부 판별 (대체 규칙은 아직 적용하지 않음)
@@ -4940,6 +5017,11 @@
                         item.status === 'owned' && ingredientNamesMatch(item.name, ingName)
                     );
                     if (foundInCatalog) return true;
+
+                    const foundInPersonalCellar = customCellar.value.some(item =>
+                        item.status === 'owned' && ingredientNamesMatch(item.name, ingName)
+                    );
+                    if (foundInPersonalCellar) return true;
 
                     return defaultNonAlcoholicIngredients.value.some(ing =>
                         ing.owned && ingredientNamesMatch(ing.name, ingName)
@@ -5124,7 +5206,13 @@ const favoriteIbaRecipesCount = computed(() => ibaOfficialDatabase.filter(iba =>
                 });
 
                 // 카탈로그 CRUD
-                const setStatus = (item, status) => { item.status = status; scheduleUserSync(); };
+                const setStatus = (item, status) => {
+                    const nextStatus = item.status === status ? 'none' : status;
+                    item.status = nextStatus;
+                    scheduleUserSync();
+                    if (status === 'owned') triggerToast(nextStatus === 'owned' ? `'${item.name}'을(를) 보유로 표시했습니다.` : `'${item.name}' 보유를 해제했습니다.`);
+                    if (status === 'wish') triggerToast(nextStatus === 'wish' ? `'${item.name}'을(를) 위시에 추가했습니다.` : `'${item.name}' 위시를 해제했습니다.`);
+                };
                 const openModalForAdd = () => {
                     editingItem.value = null;
                     imageSearchResults.value = [];
@@ -5491,8 +5579,10 @@ const favoriteIbaRecipesCount = computed(() => ibaOfficialDatabase.filter(iba =>
 
                 // JSON 가져오기 / 내보내기
                 const exportData = () => {
+                    if (!isAdmin.value) return triggerToast('데이터 내보내기는 관리자만 사용할 수 있습니다.', 'error');
                     const data = {
                         catalog: catalog.value,
+                        customCellar: customCellar.value,
                         nonAlcoholic: defaultNonAlcoholicIngredients.value,
                         recipes: recipes.value,
                         substitutions: substitutionRules.value,
@@ -5507,6 +5597,10 @@ const favoriteIbaRecipesCount = computed(() => ibaOfficialDatabase.filter(iba =>
                 };
 
                 const importData = (event) => {
+                    if (!isAdmin.value) {
+                        event.target.value = '';
+                        return triggerToast('데이터 가져오기는 관리자만 사용할 수 있습니다.', 'error');
+                    }
                     const file = event.target.files[0];
                     if (!file) return;
                     const reader = new FileReader();
@@ -5514,6 +5608,7 @@ const favoriteIbaRecipesCount = computed(() => ibaOfficialDatabase.filter(iba =>
                         try {
                             const parsed = JSON.parse(e.target.result);
                             if (Array.isArray(parsed.catalog)) catalog.value = parsed.catalog;
+                            if (Array.isArray(parsed.customCellar)) customCellar.value = parsed.customCellar.map(normalizeCustomCellarItem).filter(item => item.name);
                             const importedIngredients = parsed.nonAlcoholic || parsed.ingredients;
                             if (Array.isArray(importedIngredients)) {
                                 defaultNonAlcoholicIngredients.value = importedIngredients
@@ -5547,6 +5642,7 @@ const favoriteIbaRecipesCount = computed(() => ibaOfficialDatabase.filter(iba =>
                 return {
                     currentTab, sidebarOpen, catalogSearch, selectedCategory, categories, catalog,
                     filteredCatalog, ownedCatalog, setStatus, openModalForAdd, editItem, closeItemModal, saveItem,
+                    showCustomCellarModal, openCustomCellarModal: openCustomCellarModalFn, closeCustomCellarModal, saveCustomCellarItem, removeCustomCellarItem, customCellar, customCellarForm, fallbackBottleImage,
                     openItemModal, itemForm, editingItem, askDeleteCatalogItem, imageSearchResults, imageSearchLoading, openGoogleImageSearch, searchAlcoholProductImage, selectAlcoholImage,
                     nonAlcoholicSearch, selectedNaCategory, nonAlcoholicCategories, filteredNonAlcoholicIngredients,
                     toggleIngredientOwned, openNaIngredientModal, naForm, openCustomIngredientModal, saveCustomNaIngredient,
