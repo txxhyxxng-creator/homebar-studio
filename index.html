@@ -211,6 +211,7 @@
                 <div v-if="currentUser" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#12141c]/90 border border-[#27272a]">
                     <span class="w-7 h-7 rounded-lg bg-gradient-to-tr from-emerald-600 to-indigo-600 flex items-center justify-center text-white text-[10px] font-bold">{{ isAdmin ? 'A' : 'HB' }}</span>
                     <div class="leading-tight max-w-[180px]"><div class="text-[10px] text-zinc-400 truncate">{{ currentUser.email }}</div><div class="text-[9px]" :class="isAdmin ? 'text-emerald-300' : 'text-indigo-300'">{{ isAdmin ? 'Administrator' : 'Authorized User' }}</div></div>
+                    <div v-if="!isAdmin && hasServiceAccess" class="hidden xl:flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-bold text-emerald-300" title="이용권 남은 시간"><i class="fa-regular fa-clock"></i><span>{{ accessRemainingText }}</span></div>
                     <button @click="signOutUser" class="ml-1 text-zinc-500 hover:text-white" title="로그아웃"><i class="fa-solid fa-right-from-bracket text-xs"></i></button>
                 </div>
                 <div v-else class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-bold text-xs shadow-md">HB</div>
@@ -253,7 +254,7 @@
                                 <i class="fa-solid fa-martini-glass-citrus w-5 text-violet-400"></i>
                                 <span>내 레시피 & 시음록</span>
                             </button>
-                            <button v-if="isAdmin" @click="currentTab = 'admin'; sidebarOpen = false; loadAdminKeys()" :class="currentTab === 'admin' ? 'bg-emerald-600/10 text-emerald-300 border-emerald-500/30 font-semibold' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-transparent text-sm text-left transition">
+                            <button v-if="isAdmin" @click="currentTab = 'admin'; sidebarOpen = false; loadAdminKeys(); loadAdminUsers()" :class="currentTab === 'admin' ? 'bg-emerald-600/10 text-emerald-300 border-emerald-500/30 font-semibold' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-transparent text-sm text-left transition">
                                 <i class="fa-solid fa-shield-halved w-5 text-emerald-400"></i>
                                 <span>관리자 센터</span>
                             </button>
@@ -286,7 +287,7 @@
                             <h2 class="text-3xl font-bold tracking-tight text-white mt-2">관리자 센터</h2>
                             <p class="text-sm text-zinc-400 mt-1">전체 도감과 서비스 이용 키를 관리합니다.</p>
                         </div>
-                        <button @click="loadAdminKeys" class="px-4 py-2 bg-[#12141c] border border-[#27272a] text-zinc-300 hover:text-white rounded-xl text-xs font-semibold"><i class="fa-solid fa-rotate mr-1.5"></i>새로고침</button>
+                        <button @click="loadAdminKeys(); loadAdminUsers()" class="px-4 py-2 bg-[#12141c] border border-[#27272a] text-zinc-300 hover:text-white rounded-xl text-xs font-semibold"><i class="fa-solid fa-rotate mr-1.5"></i>새로고침</button>
                     </div>
 
                     <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
@@ -313,10 +314,40 @@
                                 <div v-for="item in adminKeys" :key="item.id" class="bg-[#181b24] border border-[#27272a] rounded-2xl p-4">
                                     <div class="flex items-start justify-between gap-3"><div class="min-w-0"><div class="text-xs font-bold text-white truncate">{{ item.label || '이용 키' }}</div><div class="text-[10px] text-zinc-500 font-mono mt-1">{{ item.maskedKey }}</div></div><span class="px-2 py-1 rounded-lg text-[9px] font-bold border" :class="item.status==='active' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : item.status==='expired' ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' : 'bg-zinc-800 text-zinc-500 border-zinc-700'">{{ item.statusLabel }}</span></div>
                                     <div class="grid grid-cols-3 gap-2 mt-3 text-[10px] text-zinc-500"><span>시작 {{ item.validFrom }}</span><span>종료 {{ item.validUntil }}</span><span>{{ item.usedCount }}/{{ item.maxUsers }} 계정</span></div>
-                                    <button v-if="item.active" @click="revokeAccessKey(item.id)" class="mt-3 text-[10px] text-red-400 hover:text-red-300">키 비활성화</button>
+                                    <div class="flex flex-wrap gap-2 mt-3">
+                                        <button @click="toggleKeyUsers(item.id)" class="text-[10px] px-2.5 py-1.5 rounded-lg bg-[#12141c] border border-[#27272a] text-zinc-300 hover:text-white">
+                                            <i class="fa-solid fa-users mr-1"></i>{{ keyExpandedId === item.id ? '등록 유저 닫기' : `등록 유저 ${item.usedCount}명` }}
+                                        </button>
+                                        <button @click="extendAccessKey(item)" class="text-[10px] px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 hover:text-emerald-200">
+                                            <i class="fa-solid fa-calendar-plus mr-1"></i>{{ item.status === 'inactive' || item.status === 'expired' ? '연장 · 재활성화' : '기간 연장' }}
+                                        </button>
+                                        <button v-if="item.active" @click="revokeAccessKey(item.id)" class="text-[10px] px-2.5 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:text-red-300">키 비활성화</button>
+                                        <button v-if="!item.active" @click="deleteAccessKey(item.id)" class="text-[10px] px-2.5 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-red-300">
+                                            <i class="fa-solid fa-trash-can mr-1"></i>목록에서 삭제
+                                        </button>
+                                    </div>
+                                    <div v-if="keyExpandedId === item.id" class="mt-3 rounded-xl border border-[#27272a] bg-[#12141c] p-3">
+                                        <div v-if="!item.usedUsers?.length" class="text-[10px] text-zinc-600">아직 이 키를 등록한 사용자가 없습니다.</div>
+                                        <div v-else class="space-y-1.5">
+                                            <div v-for="user in item.usedUsers" :key="user.uid" class="flex items-center justify-between gap-3 text-[10px]">
+                                                <div class="min-w-0"><div class="text-zinc-200 truncate">{{ user.email }}</div><div class="text-zinc-600 font-mono truncate">{{ user.uid }}</div></div>
+                                                <span v-if="user.disabled" class="shrink-0 px-1.5 py-0.5 rounded bg-red-500/10 text-red-300">계정 비활성</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="bg-[#12141c] border border-[#1f2833] rounded-3xl p-6 space-y-4">
+                        <div class="flex items-center justify-between gap-3"><div><h3 class="text-lg font-bold text-white">가입 사용자 관리</h3><p class="text-[11px] text-zinc-500 mt-1">Firebase Authentication 계정과 이용권 상태를 확인합니다.</p></div><span class="text-xs text-zinc-500">{{ adminUsers.length }}명</span></div>
+                        <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-[10px] text-amber-200/80">보안을 위해 실제 비밀번호는 조회할 수 없습니다. 이메일, Firebase UID, 가입일, 최근 로그인, 이용권 상태와 만료 시각을 확인할 수 있습니다.</div>
+                        <div v-if="adminUsersLoading" class="py-8 text-center text-zinc-500 text-xs"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i>사용자 목록을 불러오는 중...</div>
+                        <div v-else-if="!adminUsers.length" class="py-8 text-center text-zinc-600 text-xs">가입된 사용자가 없습니다.</div>
+                        <div v-else class="overflow-x-auto"><table class="w-full min-w-[760px] text-left"><thead><tr class="border-b border-[#27272a] text-[10px] text-zinc-500"><th class="px-3 py-2">사용자</th><th class="px-3 py-2">Firebase UID</th><th class="px-3 py-2">가입 / 최근 로그인</th><th class="px-3 py-2">이용권</th><th class="px-3 py-2">만료</th></tr></thead><tbody>
+                            <tr v-for="user in adminUsers" :key="user.uid" class="border-b border-[#1f2833] last:border-0"><td class="px-3 py-3"><div class="text-xs text-white font-semibold">{{ user.email || '(이메일 없음)' }}</div><div class="text-[9px] text-zinc-500 mt-0.5">{{ user.provider || 'password' }}</div></td><td class="px-3 py-3"><button @click="copyText(user.uid)" class="text-[9px] font-mono text-indigo-300 hover:text-indigo-200">{{ user.uid }}</button></td><td class="px-3 py-3 text-[9px] text-zinc-400"><div>{{ user.createdAt || '-' }}</div><div class="text-zinc-600 mt-1">{{ user.lastSignInAt || '-' }}</div></td><td class="px-3 py-3"><span class="px-2 py-1 rounded-lg text-[9px] font-bold border" :class="user.isAdmin ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : user.accessActive ? 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20' : 'bg-zinc-800 text-zinc-500 border-zinc-700'">{{ user.isAdmin ? '관리자' : user.accessActive ? '사용 가능' : '미사용/만료' }}</span></td><td class="px-3 py-3 text-[9px] text-zinc-400">{{ user.validUntil || '-' }}<div v-if="user.accessLabel" class="text-zinc-600 mt-1 truncate max-w-[130px]">{{ user.accessLabel }}</div></td></tr>
+                        </tbody></table></div>
                     </div>
 
                     <div class="bg-[#12141c] border border-[#1f2833] rounded-3xl p-5 text-xs text-zinc-400 leading-relaxed">
@@ -1320,7 +1351,11 @@
                 const firebaseStatusMessage = ref('Firebase 연결을 준비하고 있습니다.');
                 const adminKeys = ref([]);
                 const adminKeysLoading = ref(false);
+                const adminUsers = ref([]);
+                const adminUsersLoading = ref(false);
+                const keyExpandedId = ref(null);
                 const generatedAccessKey = ref('');
+                const nowTick = ref(Date.now());
                 const adminKeyForm = reactive({ label: '', validFrom: new Date().toISOString().slice(0,10), validUntil: '', maxUsers: 1 });
                 let firebaseDb = null;
                 let firebaseAuth = null;
@@ -1332,7 +1367,21 @@
                 const hasServiceAccess = computed(() => {
                     if (isAdmin.value) return true;
                     if (!serviceAccess.active || !serviceAccess.validUntil) return false;
-                    return new Date(serviceAccess.validUntil).getTime() >= Date.now();
+                    return new Date(serviceAccess.validUntil).getTime() >= nowTick.value;
+                });
+
+                const accessRemainingText = computed(() => {
+                    if (isAdmin.value) return '관리자';
+                    if (!serviceAccess.active || !serviceAccess.validUntil) return '이용권 없음';
+                    const diff = new Date(serviceAccess.validUntil).getTime() - nowTick.value;
+                    if (diff <= 0) return '만료됨';
+                    const totalMinutes = Math.floor(diff / 60000);
+                    const days = Math.floor(totalMinutes / 1440);
+                    const hours = Math.floor((totalMinutes % 1440) / 60);
+                    const minutes = totalMinutes % 60;
+                    if (days > 0) return `${days}일 ${hours}시간 남음`;
+                    if (hours > 0) return `${hours}시간 ${minutes}분 남음`;
+                    return `${Math.max(1, minutes)}분 남음`;
                 });
 
                 const getFirebaseIdToken = async () => {
@@ -1432,6 +1481,47 @@
                     finally { adminKeysLoading.value = false; }
                 };
 
+                const loadAdminUsers = async () => {
+                    if (!isAdmin.value) return;
+                    adminUsersLoading.value = true;
+                    try {
+                        const token = await getFirebaseIdToken();
+                        const data = await apiJson('/api/admin/users', { headers: { Authorization: `Bearer ${token}` } });
+                        adminUsers.value = data.users || [];
+                    } catch (error) { triggerToast(error.message, 'error'); }
+                    finally { adminUsersLoading.value = false; }
+                };
+
+                const toggleKeyUsers = (keyId) => {
+                    keyExpandedId.value = keyExpandedId.value === keyId ? null : keyId;
+                };
+
+                const extendAccessKey = async (item) => {
+                    const suggested = item.validUntil || new Date().toISOString().slice(0, 10);
+                    const newUntil = prompt(`\n${item.label || '이용 키'}의 새 유효 종료일을 입력하세요.\n예: 2026-12-31`, suggested);
+                    if (!newUntil) return;
+                    if (!/^\d{4}-\d{2}-\d{2}$/.test(newUntil)) return triggerToast('날짜 형식은 YYYY-MM-DD로 입력해주세요.', 'error');
+                    if (newUntil < item.validFrom) return triggerToast('종료일은 시작일 이후여야 합니다.', 'error');
+                    if (!confirm(`${newUntil}까지 이용 가능하도록 연장하고, 비활성/만료 키라면 다시 활성화할까요?`)) return;
+                    try {
+                        const token = await getFirebaseIdToken();
+                        await apiJson(`/api/admin/keys/${encodeURIComponent(item.id)}`, { method: 'PATCH', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ validFrom: item.validFrom, validUntil: newUntil, maxUsers: item.maxUsers, label: item.label, active: true }) });
+                        await loadAdminKeys();
+                        triggerToast('이용 키 기간을 연장하고 활성화했습니다.');
+                    } catch (error) { triggerToast(error.message, 'error'); }
+                };
+
+                const deleteAccessKey = async (keyId) => {
+                    if (!confirm('비활성화된 이용 키를 목록과 데이터베이스에서 완전히 삭제할까요? 등록 이력도 더 이상 이 키에서 확인할 수 없습니다.')) return;
+                    try {
+                        const token = await getFirebaseIdToken();
+                        await apiJson(`/api/admin/keys/${encodeURIComponent(keyId)}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+                        if (keyExpandedId.value === keyId) keyExpandedId.value = null;
+                        await loadAdminKeys();
+                        triggerToast('비활성화된 이용 키를 삭제했습니다.');
+                    } catch (error) { triggerToast(error.message, 'error'); }
+                };
+
                 const createAccessKey = async () => {
                     if (!adminKeyForm.validUntil) return triggerToast('유효 종료일을 선택해주세요.', 'error');
                     if (adminKeyForm.validUntil < adminKeyForm.validFrom) return triggerToast('종료일은 시작일 이후여야 합니다.', 'error');
@@ -1481,7 +1571,7 @@
                             try {
                                 await loadAccessStatus();
                                 await hydrateFromCloud();
-                                if (isAdmin.value) await loadAdminKeys();
+                                if (isAdmin.value) { await loadAdminKeys(); await loadAdminUsers(); }
                             } catch (error) {
                                 console.error(error);
                                 authError.value = error.message;
@@ -4915,6 +5005,7 @@
                     const savedMeta = safeParseStorage('hbs_iba_meta', null);
                     if (savedMeta && typeof savedMeta === 'object') Object.assign(ibaMeta, savedMeta);
                     defaultNonAlcoholicIngredients.value.forEach((ing, index) => { if (!ing.id) ing.id = `na_${index+1}`; if (typeof ing.owned !== 'boolean') ing.owned = false; });
+                    setInterval(() => { nowTick.value = Date.now(); }, 1000);
                     initializeFirebase();
                     clearInterval(accessCheckTimer);
                     accessCheckTimer = setInterval(() => { if (firebaseAuth?.currentUser) loadAccessStatus().catch(() => {}); }, 60000);
@@ -5577,6 +5668,12 @@ const favoriteIbaRecipesCount = computed(() => ibaOfficialDatabase.filter(iba =>
                     showTastingModal.value = false;
                 };
 
+                const copyText = async (value) => {
+                    if (!value) return;
+                    try { await navigator.clipboard.writeText(String(value)); triggerToast('클립보드에 복사했습니다.'); }
+                    catch (_) { triggerToast('복사에 실패했습니다.', 'error'); }
+                };
+
                 // JSON 가져오기 / 내보내기
                 const exportData = () => {
                     if (!isAdmin.value) return triggerToast('데이터 내보내기는 관리자만 사용할 수 있습니다.', 'error');
@@ -5657,8 +5754,8 @@ const favoriteIbaRecipesCount = computed(() => ibaOfficialDatabase.filter(iba =>
                     substitutionSearch, substitutionForm, editingSubstitutionIndex, substitutionRules, filteredSubstitutionRules,
                     openSubstitutionEditor, saveSubstitutionRule, toggleSubstitutionRule, deleteSubstitutionRule, restoreDefaultSubstitutions, resetSubstitutionForm,
                     toast, confirmModal, executeConfirmAction, getTabTitle, exportData, importData, handleImageError, handleItemImageUpload,
-                    firebaseReady, firebaseConfigured, currentUser, isAdmin, serviceAccess, hasServiceAccess, authMode, authLoading, authError, authForm, firebaseStatusMessage,
-                    signIn, signUp, sendPasswordReset, signOutUser, activateAccessKey, adminKeys, adminKeysLoading, adminKeyForm, generatedAccessKey, createAccessKey, loadAdminKeys, revokeAccessKey, copyGeneratedKey
+                    firebaseReady, firebaseConfigured, currentUser, isAdmin, serviceAccess, hasServiceAccess, accessRemainingText, authMode, authLoading, authError, authForm, firebaseStatusMessage,
+                    signIn, signUp, sendPasswordReset, signOutUser, activateAccessKey, adminKeys, adminKeysLoading, adminUsers, adminUsersLoading, keyExpandedId, adminKeyForm, generatedAccessKey, createAccessKey, loadAdminKeys, loadAdminUsers, revokeAccessKey, toggleKeyUsers, extendAccessKey, deleteAccessKey, copyGeneratedKey, copyText
                 };
             }
         }).mount('#app');
