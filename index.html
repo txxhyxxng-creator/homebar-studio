@@ -253,6 +253,288 @@
             }
         }
 
+
+        /* BarTail mobile refinement: spacious, calm, one-hand friendly */
+        @media (max-width: 767px) {
+            /* iOS Safari already accounts for browser chrome; reserve safe-area only in standalone mode below. */
+            #app > header {
+                box-sizing: border-box;
+                height: 4rem;
+                padding-top: 0;
+                padding-left: max(.875rem, env(safe-area-inset-left));
+                padding-right: max(.875rem, env(safe-area-inset-right));
+            }
+            #app > .flex-1.relative {
+                margin-top: 4rem;
+                min-height: calc(100dvh - 4rem);
+            }
+            #app > .flex-1.relative > aside {
+                top: 4rem;
+                height: calc(100dvh - 4rem);
+            }
+            #app > header > div:first-child {
+                gap: .5rem;
+                flex: 1 1 auto;
+                min-width: 0;
+            }
+            #app > header > div:first-child > div {
+                max-width: none;
+                flex: 1 1 auto;
+                min-width: 0;
+            }
+            #app > header .text-sm {
+                max-width: 100%;
+                font-size: .875rem;
+                gap: .35rem;
+            }
+            #app > header .text-sm > span:first-child {
+                flex: 0 0 auto;
+            }
+            #app > header .text-sm > span:first-child span {
+                font-size: .95rem;
+            }
+            #app > header .text-sm > span:last-child {
+                max-width: 34vw;
+                color: #e4e4e7;
+                font-size: .8rem;
+            }
+            #app > header > div:last-child {
+                flex: 0 0 auto;
+                gap: .35rem;
+            }
+            #app > header > div:last-child > div[v-if="currentUser"] {
+                padding: .35rem;
+                gap: .3rem;
+                border-radius: .9rem;
+            }
+            #app > header .w-9.h-9 {
+                width: 2.05rem;
+                height: 2.05rem;
+            }
+            #app > header .mobile-access-badge {
+                max-width: 6.4rem;
+                padding: .35rem .5rem;
+                font-size: .58rem;
+                white-space: nowrap;
+            }
+            #app > header .mobile-access-badge i {
+                font-size: .58rem;
+                flex: 0 0 auto;
+            }
+            #app > header button[aria-label="로그아웃"] {
+                width: 2.05rem;
+                height: 2.05rem;
+                margin-left: 0;
+            }
+
+            /* More breathing room without wasting screen height */
+            #app > .flex-1.relative > main {
+                padding: 1.125rem;
+                padding-bottom: max(2.5rem, env(safe-area-inset-bottom));
+            }
+            .mobile-section {
+                gap: 1.75rem;
+            }
+            .mobile-section > div:first-child {
+                margin-bottom: .25rem;
+            }
+            #app main h2.text-3xl {
+                font-size: 1.55rem;
+                line-height: 1.22;
+                letter-spacing: -.025em;
+            }
+            #app main h3.text-lg {
+                font-size: 1.05rem;
+                line-height: 1.35;
+            }
+            #app main p.text-sm {
+                font-size: .86rem;
+                line-height: 1.65;
+                color: #a1a1aa;
+            }
+
+            /* Filter chips: keep them on one calm horizontal rail instead of 2–3 cramped rows. */
+            #app main .flex.flex-wrap.items-center.gap-2.pt-1.pb-2 {
+                flex-wrap: nowrap !important;
+                overflow-x: auto;
+                overflow-y: hidden;
+                width: 100%;
+                max-width: 100%;
+                padding-top: .15rem;
+                padding-bottom: .55rem;
+                margin-bottom: .15rem;
+                gap: .55rem;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                overscroll-behavior-x: contain;
+            }
+            #app main .flex.flex-wrap.items-center.gap-2.pt-1.pb-2::-webkit-scrollbar {
+                display: none;
+            }
+            #app main .flex.flex-wrap.items-center.gap-2.pt-1.pb-2 > * {
+                flex: 0 0 auto;
+            }
+            #app main .flex.flex-wrap.items-center.gap-2.pt-1.pb-2 button {
+                min-height: 2.9rem;
+                padding: .65rem .95rem;
+                border-radius: .95rem;
+                font-size: .82rem;
+                white-space: nowrap;
+            }
+            #app main .flex.flex-wrap.items-center.gap-2.pt-1.pb-2 > span:first-child {
+                position: sticky;
+                left: 0;
+                z-index: 1;
+                padding-right: .2rem;
+                background: linear-gradient(90deg, #0b0c10 75%, transparent);
+            }
+            #app main .flex.flex-wrap.items-center.gap-2.pt-1.pb-2 > span.w-px {
+                flex: 0 0 1px;
+                margin-left: .15rem;
+                margin-right: .15rem;
+            }
+
+            /* Catalog / cellar cards: slightly smaller, softer and easier to scan. */
+            .mobile-section-catalog .grid,
+            .mobile-section-cellar .grid,
+            .mobile-section-iba .grid,
+            .mobile-section-ingredients .grid {
+                gap: 1rem;
+            }
+            .mobile-section-catalog .grid > div,
+            .mobile-section-cellar .grid > div,
+            .mobile-section-iba .grid > div {
+                border-radius: 1.45rem;
+                padding: 1rem;
+                box-shadow: 0 12px 35px rgba(0,0,0,.18);
+            }
+            .mobile-section-catalog .grid > div > div:first-child > div:first-child,
+            .mobile-section-cellar .grid > div > div:first-child > div:first-child {
+                margin-bottom: .75rem;
+            }
+            .mobile-section-catalog .grid > div .w-full.h-56,
+            .mobile-section-cellar .grid > div .w-full.h-56 {
+                height: 12rem;
+                border-radius: 1.15rem;
+                margin-bottom: .9rem;
+            }
+            .mobile-section-catalog .grid > div .w-full.h-56 img,
+            .mobile-section-cellar .grid > div .w-full.h-56 img {
+                height: 9.5rem;
+            }
+            .mobile-section-catalog .grid > div h3,
+            .mobile-section-cellar .grid > div h3 {
+                font-size: 1.05rem;
+                line-height: 1.35;
+            }
+            .mobile-section-catalog .grid > div .mt-5 {
+                margin-top: 1rem;
+                padding-top: .8rem;
+            }
+            .mobile-section-catalog .grid > div .mt-5 button,
+            .mobile-section-cellar .grid > div button {
+                min-height: 2.65rem;
+            }
+
+            /* Ingredients cards: preserve touch target while reducing visual bulk. */
+            .mobile-section-ingredients .grid > div {
+                border-radius: 1.35rem;
+                padding: 1rem;
+            }
+            .mobile-section-ingredients .grid > div h3 {
+                font-size: 1.05rem;
+            }
+            .mobile-section-ingredients .grid > div button {
+                min-height: 2.75rem;
+                border-radius: .9rem;
+            }
+
+            /* IBA cards: more editorial spacing, less "dashboard" density. */
+            .mobile-section-iba .grid > div {
+                padding: 1.1rem;
+                border-radius: 1.45rem;
+            }
+            .mobile-section-iba .grid > div .mb-3 {
+                margin-bottom: .8rem;
+            }
+            .mobile-section-iba .grid > div .p-4 {
+                padding: .9rem;
+                border-radius: 1rem;
+            }
+            .mobile-section-iba .grid > div .p-4 > div {
+                line-height: 1.65;
+            }
+
+            /* Header action groups: stack search + primary action cleanly. */
+            .mobile-section-catalog > div:first-child > div:last-child,
+            .mobile-section-ingredients > div:first-child > div:last-child {
+                width: 100%;
+                gap: .65rem;
+            }
+            .mobile-section-catalog > div:first-child > div:last-child > .relative,
+            .mobile-section-ingredients > div:first-child > div:last-child > .relative {
+                flex: 1 1 auto;
+                min-width: 0;
+            }
+            .mobile-section-catalog > div:first-child > div:last-child input,
+            .mobile-section-ingredients > div:first-child > div:last-child input {
+                width: 100% !important;
+                min-width: 0;
+            }
+            .mobile-section-catalog > div:first-child > div:last-child > div:last-child {
+                flex: 0 0 auto;
+            }
+            .mobile-section-catalog > div:first-child > div:last-child > div:last-child button {
+                min-width: 6.4rem;
+                padding-left: .8rem;
+                padding-right: .8rem;
+            }
+            .mobile-section-ingredients > div:first-child > div:last-child > button {
+                flex: 0 0 auto;
+                min-width: 7.2rem;
+                padding-left: .8rem;
+                padding-right: .8rem;
+            }
+
+            /* Mobile modal: use almost the whole screen, but keep generous side margins. */
+            #app .fixed.inset-0 > div.max-w-md,
+            #app .fixed.inset-0 > div.max-w-lg,
+            #app .fixed.inset-0 > div.max-w-2xl,
+            #app .fixed.inset-0 > div.max-w-3xl {
+                width: calc(100vw - 2rem);
+                max-width: calc(100vw - 2rem);
+                border-radius: 1.35rem;
+                max-height: calc(100dvh - 2rem);
+            }
+
+            /* Inputs: comfortable, but not oversized. */
+            #app main input, #app main select, #app main textarea {
+                min-height: 2.9rem;
+                border-radius: .9rem;
+            }
+
+            /* Sidebar becomes a polished mobile drawer. */
+            #app > .flex-1.relative > aside {
+                width: min(82vw, 19rem);
+                border-right: 1px solid rgba(255,255,255,.08);
+                box-shadow: 24px 0 70px rgba(0,0,0,.42);
+            }
+        }
+
+        @media (display-mode: standalone) and (max-width: 767px) {
+            #app > header {
+                height: calc(4rem + env(safe-area-inset-top));
+                padding-top: env(safe-area-inset-top);
+            }
+            #app > .flex-1.relative {
+                margin-top: calc(4rem + env(safe-area-inset-top));
+            }
+            #app > .flex-1.relative > aside {
+                top: calc(4rem + env(safe-area-inset-top));
+                height: calc(100dvh - 4rem - env(safe-area-inset-top));
+            }
+        }
+
         @media (max-width: 380px) {
             #app > header { padding-left: .625rem; padding-right: .625rem; }
             #app > header .text-sm { max-width: 55vw; }
@@ -368,13 +650,13 @@
                     <span>2024 IBA Official Database</span>
                 </div>
                 <div v-if="currentUser" class="flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-xl bg-[#12141c]/90 border border-[#27272a]">
-                    <span class="w-7 h-7 rounded-lg bg-gradient-to-tr from-emerald-600 to-indigo-600 flex items-center justify-center text-white text-[10px] font-bold">{{ isAdmin ? 'A' : 'HB' }}</span>
+                    <span class="w-7 h-7 rounded-lg bg-gradient-to-tr from-emerald-600 to-indigo-600 flex items-center justify-center text-white text-[10px] font-bold">{{ isAdmin ? 'A' : 'BT' }}</span>
                     <div class="user-header-details leading-tight max-w-[180px]"><div class="text-[10px] text-zinc-400 truncate">{{ currentUser.email }}</div><div class="text-[9px]" :class="isAdmin ? 'text-emerald-300' : 'text-indigo-300'">{{ isAdmin ? 'Administrator' : 'Authorized User' }}</div></div>
                     <div v-if="!isAdmin && hasServiceAccess" class="hidden xl:flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-bold text-emerald-300" title="이용권 남은 시간"><i class="fa-regular fa-clock"></i><span>{{ accessRemainingText }}</span></div>
                     <div v-if="!isAdmin && hasServiceAccess" class="mobile-access-badge hidden items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-bold text-emerald-300 max-w-[7rem]" title="이용권 남은 시간"><i class="fa-regular fa-clock"></i><span class="truncate">{{ accessRemainingText }}</span></div>
                     <button @click="signOutUser" aria-label="로그아웃" class="ml-1 w-9 h-9 flex items-center justify-center rounded-lg text-zinc-500 hover:text-white hover:bg-white/5" title="로그아웃"><i class="fa-solid fa-right-from-bracket text-xs"></i></button>
                 </div>
-                <div v-else class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-bold text-xs shadow-md">HB</div>
+                <div v-else class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-bold text-xs shadow-md">BT</div>
             </div>
         </header>
 
@@ -561,7 +843,7 @@
                 </div>
 
                 <!-- 1. 전체 술 도감 (Catalog) 탭 -->
-                <div v-if="currentTab === 'catalog'" class="space-y-6">
+                <div v-if="currentTab === 'catalog'" class="space-y-6 mobile-section mobile-section-catalog">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <h2 class="text-3xl font-bold tracking-tight text-white">전체 술 도감 (Catalog)</h2>
@@ -648,7 +930,7 @@
                 </div>
 
                 <!-- 2. 내 술장 (Cellar) 탭 -->
-                <div v-if="currentTab === 'cellar'" class="space-y-6">
+                <div v-if="currentTab === 'cellar'" class="space-y-6 mobile-section mobile-section-cellar">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <h2 class="text-3xl font-bold tracking-tight text-white">내 술장 (Cellar)</h2>
@@ -704,7 +986,7 @@
                 </div>
 
                 <!-- 🍋 3. 기타 재료 관리 (Ingredients) 탭 -->
-                <div v-if="currentTab === 'nonAlcoholic'" class="space-y-6">
+                <div v-if="currentTab === 'nonAlcoholic'" class="space-y-6 mobile-section mobile-section-ingredients">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <div class="flex items-center space-x-3 mb-1">
@@ -766,7 +1048,7 @@
                 </div>
 
                 <!-- 🍸 4. IBA 공식 도감 (IBA Directory) 탭 -->
-                <div v-if="currentTab === 'ibaDirectory'" class="space-y-6">
+                <div v-if="currentTab === 'ibaDirectory'" class="space-y-6 mobile-section mobile-section-iba">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <div class="flex items-center space-x-3 mb-1">
@@ -858,7 +1140,7 @@
                 </div>
 
                 <!-- 🍸 5. IBA 스마트 추천 탭 -->
-                <div v-if="currentTab === 'recommend'" class="space-y-8">
+                <div v-if="currentTab === 'recommend'" class="space-y-8 mobile-section mobile-section-recommend">
                     <div>
                         <div class="flex items-center space-x-3 mb-1">
                             <span class="px-2.5 py-0.5 bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[11px] font-bold rounded-md">Smart Recommendation Engine</span>
@@ -1017,7 +1299,7 @@
                 </div>
 
                 <!-- 6. 내 레시피 & 시음록 (Recipe & Tasting Notes) 탭 -->
-                <div v-if="currentTab === 'recipe'" class="space-y-6">
+                <div v-if="currentTab === 'recipe'" class="space-y-6 mobile-section mobile-section-recipe">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <h2 class="text-3xl font-bold tracking-tight text-white">내 레시피 & 시음록</h2>
@@ -1090,7 +1372,7 @@
 
 
                 <!-- 🔄 재료 대체 설정 탭 -->
-                                <div v-if="currentTab === 'substitutions'" class="substitution-layout-fix space-y-6">
+                                <div v-if="currentTab === 'substitutions'" class="substitution-layout-fix space-y-6 mobile-section mobile-section-substitutions">
                                     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                                         <div>
                                             <div class="flex items-center space-x-3 mb-1">
