@@ -45,21 +45,16 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
-    // 사용자 프로필: 프로필 원문은 본인만 직접 읽고 쓸 수 있으며,
-    // 다른 사용자 목록은 서버 API가 이용권 상태를 확인한 뒤 제공합니다.
+    // 사용자 프로필: 본인만 직접 읽고 쓸 수 있습니다. 관리자도 자신의 프로필을 관리할 수 있습니다.
     match /profiles/{userId} {
-      allow read, write: if signedIn() && request.auth.uid == userId && hasActiveAccess();
+      allow read, write: if request.auth != null && request.auth.uid == userId && hasActiveAccess();
     }
 
-    // 1:1 사용자 채팅. 대화 ID는 두 UID를 정렬해 만든 값을 사용합니다.
-    match /chats/{chatId} {
-      allow read: if hasActiveAccess() && validChatParticipants(resource.data);
+    // BarTail 전체 채팅방. 메시지 생성은 서버 API가 담당하고,
+    // 클라이언트는 활성 이용자/관리자만 실시간으로 읽을 수 있습니다.
+    match /globalChat/{messageId} {
+      allow read: if hasActiveAccess();
       allow create, update, delete: if false;
-
-      match /messages/{messageId} {
-        allow read: if hasActiveAccess() && validChatParticipants(get(/databases/$(database)/documents/chats/$(chatId)).data);
-        allow create, update, delete: if false;
-      }
     }
 
     match /{document=**} { allow read, write: if false; }
