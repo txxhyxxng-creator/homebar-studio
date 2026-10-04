@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-title" content="BarTail">
     <link rel="manifest" href="/manifest.webmanifest">
     <link id="bartail-favicon" rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2716%27 fill=%27%231a2440%27/%3E%3Ctext x=%2732%27 y=%2741%27 text-anchor=%27middle%27 font-family=%27Arial%27 font-size=%2724%27 font-weight=%27700%27 fill=%27white%27%3EBT%3C/text%3E%3C/svg%3E">
-    <title>BarTail - 바테일</title>
+    <title>BarTail - 바테일 (IBA Official 2024)</title>
     <!-- Tailwind CSS v3 CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -6230,17 +6230,39 @@
                     return aVariants.some(av => bVariants.includes(av));
                 };
 
+                // 주류 계열 재료는 세부 제품명과 IBA의 일반 재료명을 연결합니다.
+                // 예: '드라이 진'을 보유하고 있으면 IBA의 '진' 요구도 충족합니다.
+                const spiritCategoryByIngredient = {
+                    '진': '진',
+                    '위스키': '위스키',
+                    '보드카': '보드카',
+                    '럼': '럼',
+                    '데킬라': '데킬라',
+                    '브랜디': '브랜디',
+                    '리큐르': '리큐르',
+                    '비터스': '비터스'
+                };
+
+                const ingredientMatchesCatalogItem = (item, ingName) => {
+                    if (!item || !ingName) return false;
+                    if (ingredientNamesMatch(item.name, ingName)) return true;
+
+                    const requested = normalizeIngredientName(ingName);
+                    const category = String(item.category || '').trim();
+                    return spiritCategoryByIngredient[requested] === category;
+                };
+
                 // 실제 보유 여부 판별 (대체 규칙은 아직 적용하지 않음)
                 const isDirectIngredientOwned = (ingName) => {
                     if (!ingName) return false;
 
                     const foundInCatalog = catalog.value.some(item =>
-                        item.status === 'owned' && ingredientNamesMatch(item.name, ingName)
+                        item.status === 'owned' && ingredientMatchesCatalogItem(item, ingName)
                     );
                     if (foundInCatalog) return true;
 
                     const foundInPersonalCellar = customCellar.value.some(item =>
-                        item.status === 'owned' && ingredientNamesMatch(item.name, ingName)
+                        item.status === 'owned' && ingredientMatchesCatalogItem(item, ingName)
                     );
                     if (foundInPersonalCellar) return true;
 
