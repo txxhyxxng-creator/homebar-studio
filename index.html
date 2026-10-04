@@ -998,19 +998,11 @@
                                 <button @click="currentTab = 'recipe'; sidebarOpen = false" :class="currentTab === 'recipe' ? 'text-violet-300 font-semibold bg-violet-500/10' : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.03]'" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left transition"><i class="fa-solid fa-bookmark w-4"></i><span>내 레시피 & 시음록</span></button>
                             </div>
 
-                            <!-- 커뮤니티 -->
-                            <button v-if="hasServiceAccess && !isAdmin && !impersonationMode" @click="navGroups.community = !navGroups.community" :aria-expanded="navGroups.community" :class="['w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-transparent text-sm text-left transition', (navGroups.community || currentTab === 'chat') ? 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20 font-semibold' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200']">
-                                <i class="fa-solid fa-comments w-5 text-cyan-400"></i><span class="flex-1">커뮤니티</span><span v-if="chatUnreadCount > 0" class="min-w-5 h-5 px-1.5 rounded-full bg-cyan-500 text-[#061014] text-[9px] font-extrabold flex items-center justify-center">{{ chatUnreadCount }}</span><i :class="navGroups.community ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'" class="text-[10px] text-zinc-500"></i>
-                            </button>
-                            <div v-if="hasServiceAccess && !isAdmin && !impersonationMode" v-show="navGroups.community" class="ml-4 pl-3 border-l border-[#27313b] space-y-0.5 py-1">
-                                <button @click="currentTab = 'chat'; sidebarOpen = false; loadChatDirectory(); loadChatList()" :class="currentTab === 'chat' ? 'text-cyan-300 font-semibold bg-cyan-500/10' : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.03]'" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left transition"><i class="fa-solid fa-comments w-4"></i><span class="flex-1">유저 채팅</span><span v-if="chatUnreadCount > 0" class="text-[9px] text-cyan-300">{{ chatUnreadCount }}</span></button>
-                            </div>
-
                             <!-- 설정 -->
-                            <button v-if="hasServiceAccess && !impersonationMode" @click="navGroups.settings = !navGroups.settings" :aria-expanded="navGroups.settings" :class="['w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-transparent text-sm text-left transition', (navGroups.settings || currentTab === 'profile') ? 'bg-zinc-500/10 text-zinc-200 border-zinc-500/20 font-semibold' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200']">
+                            <button v-if="(hasServiceAccess || isAdmin) && !impersonationMode" @click="navGroups.settings = !navGroups.settings" :aria-expanded="navGroups.settings" :class="['w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-transparent text-sm text-left transition', (navGroups.settings || currentTab === 'profile') ? 'bg-zinc-500/10 text-zinc-200 border-zinc-500/20 font-semibold' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200']">
                                 <i class="fa-solid fa-gear w-5 text-zinc-400"></i><span class="flex-1">설정</span><i :class="navGroups.settings ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'" class="text-[10px] text-zinc-500"></i>
                             </button>
-                            <div v-if="hasServiceAccess && !impersonationMode" v-show="navGroups.settings" class="ml-4 pl-3 border-l border-[#27313b] space-y-0.5 py-1">
+                            <div v-if="(hasServiceAccess || isAdmin) && !impersonationMode" v-show="navGroups.settings" class="ml-4 pl-3 border-l border-[#27313b] space-y-0.5 py-1">
                                 <button @click="currentTab = 'profile'; sidebarOpen = false; loadMyProfile()" :class="currentTab === 'profile' ? 'text-emerald-300 font-semibold bg-emerald-500/10' : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.03]'" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left transition"><i class="fa-solid fa-user-pen w-4 text-emerald-400"></i><span>내 프로필</span></button>
                             </div>
 
@@ -1056,7 +1048,7 @@
             <main class="min-w-0 p-6 lg:p-8">
                 
                 <!-- 👤 내 프로필 -->
-                <div v-if="currentTab === 'profile' && hasServiceAccess && !impersonationMode" class="space-y-6 mobile-section">
+                <div v-if="currentTab === 'profile' && (hasServiceAccess || isAdmin) && !impersonationMode" class="space-y-6 mobile-section">
                     <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
                         <div>
                             <span class="inline-flex px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-[10px] font-bold tracking-[.08em] rounded-lg">MY PROFILE</span>
@@ -1094,68 +1086,6 @@
                     </div>
                 </div>
 
-                <!-- 💬 유저 채팅 -->
-                <div v-if="currentTab === 'chat' && hasServiceAccess && !isAdmin && !impersonationMode" class="space-y-6 mobile-section">
-                    <div class="flex items-end justify-between gap-4">
-                        <div>
-                            <span class="inline-flex px-2.5 py-1 bg-cyan-500/10 border border-cyan-500/25 text-cyan-300 text-[10px] font-bold tracking-[.08em] rounded-lg">USER CHAT</span>
-                            <h2 class="text-3xl font-bold tracking-tight text-white mt-2">유저 채팅</h2>
-                            <p class="text-sm text-zinc-400 mt-1">현재 이용 중인 BarTail 사용자와 1:1로 대화하세요.</p>
-                        </div>
-                        <button @click="loadChatDirectory(); loadChatList()" class="shrink-0 w-10 h-10 rounded-xl bg-[#12141c] border border-[#27272a] text-zinc-400 hover:text-white transition" title="새로고침"><i class="fa-solid fa-rotate text-xs"></i></button>
-                    </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-5 min-h-[620px]">
-                        <section :class="['bg-[#12141c] border border-[#1f2833] rounded-3xl p-4 flex flex-col min-h-[620px]', chatMobileView ? 'hidden lg:flex' : 'flex']">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="flex items-center gap-2"><h3 class="text-sm font-bold text-white">최근 대화</h3><span v-if="chatList.length" class="text-[9px] text-zinc-600">{{ chatList.length }}</span></div>
-                            </div>
-                            <div v-if="chatList.length" class="space-y-1 mb-4 pb-4 border-b border-[#1f2833]">
-                                <button v-for="chat in chatList" :key="'recent-'+chat.id" @click="openChatWith(chat.other)" class="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/5 text-left transition" :class="selectedChatUser?.uid === chat.other?.uid ? 'bg-cyan-500/10 border border-cyan-500/15' : 'border border-transparent'">
-                                    <div class="relative w-10 h-10 rounded-xl overflow-hidden bg-gradient-to-tr from-emerald-600/40 to-indigo-600/40 flex items-center justify-center shrink-0 border border-white/5">
-                                        <img v-if="chat.other?.avatar" :src="chat.other.avatar" :alt="chat.other.nickname" class="w-full h-full object-cover"><span v-else class="text-xs font-bold text-white">{{ getProfileInitial(chat.other?.nickname) }}</span>
-                                        <span v-if="chat.unread" class="absolute right-0.5 top-0.5 w-2.5 h-2.5 rounded-full bg-cyan-400 border-2 border-[#12141c]"></span>
-                                    </div>
-                                    <div class="min-w-0 flex-1"><div class="flex items-center gap-2"><div class="text-xs font-bold text-white truncate">{{ chat.other?.nickname }}</div><span v-if="chat.unread" class="text-[8px] font-bold text-cyan-300">NEW</span></div><div class="text-[10px] text-zinc-500 truncate">{{ chat.lastMessage || '대화를 시작했습니다.' }}</div></div>
-                                    <div class="text-[9px] text-zinc-600 shrink-0">{{ formatChatTime(chat.updatedAt) }}</div>
-                                </button>
-                            </div>
-                            <div class="flex items-center justify-between mb-3"><h3 class="text-sm font-bold text-white">사용자 찾기</h3><span class="text-[9px] text-zinc-600">활성 사용자</span></div>
-                            <div class="relative mb-3"><i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 text-[10px]"></i><input v-model="chatUserSearch" placeholder="닉네임 검색" class="w-full bg-[#181b24] border border-[#27272a] rounded-xl pl-8 pr-3 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500"></div>
-                            <div class="space-y-1 overflow-y-auto pr-1 flex-1">
-                                <button v-for="person in filteredChatUsers" :key="person.uid" @click="openChatWith(person)" class="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/5 text-left transition" :class="selectedChatUser?.uid === person.uid ? 'bg-cyan-500/10 border border-cyan-500/15' : 'border border-transparent'">
-                                    <div class="w-10 h-10 rounded-xl overflow-hidden bg-gradient-to-tr from-emerald-600/40 to-indigo-600/40 flex items-center justify-center shrink-0 border border-white/5"><img v-if="person.avatar" :src="person.avatar" :alt="person.nickname" class="w-full h-full object-cover"><span v-else class="text-xs font-bold text-white">{{ getProfileInitial(person.nickname) }}</span></div>
-                                    <div class="min-w-0"><div class="text-xs font-bold text-white truncate">{{ person.nickname }}</div><div class="text-[10px] text-zinc-500">BarTail 사용자</div></div>
-                                </button>
-                                <div v-if="chatLoading" class="py-8 text-center text-xs text-zinc-600"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i>사용자를 불러오는 중...</div>
-                                <div v-else-if="!filteredChatUsers.length" class="py-8 text-center text-xs text-zinc-600">표시할 사용자가 없습니다.</div>
-                            </div>
-                        </section>
-
-                        <section :class="['bg-[#12141c] border border-[#1f2833] rounded-3xl overflow-hidden flex flex-col min-h-[620px]', chatMobileView ? 'flex' : 'hidden lg:flex']">
-                            <div v-if="selectedChatUser" class="px-4 sm:px-5 py-3.5 border-b border-[#1f2833] flex items-center gap-3">
-                                <button @click="closeMobileChat" class="lg:hidden w-9 h-9 rounded-xl bg-[#181b24] border border-[#27272a] text-zinc-400 hover:text-white"><i class="fa-solid fa-arrow-left text-xs"></i></button>
-                                <div class="w-10 h-10 rounded-xl overflow-hidden bg-gradient-to-tr from-emerald-600/40 to-indigo-600/40 flex items-center justify-center border border-white/5 shrink-0"><img v-if="selectedChatUser.avatar" :src="selectedChatUser.avatar" :alt="selectedChatUser.nickname" class="w-full h-full object-cover"><span v-else class="text-xs font-bold text-white">{{ getProfileInitial(selectedChatUser.nickname) }}</span></div>
-                                <div class="min-w-0 flex-1"><div class="text-sm font-bold text-white truncate">{{ selectedChatUser.nickname }}</div><div class="text-[10px] text-emerald-400">BarTail 사용자</div></div>
-                            </div>
-                            <div v-else class="px-5 py-4 border-b border-[#1f2833] text-sm font-bold text-white">대화를 선택하세요</div>
-                            <div ref="chatMessagesEl" class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-2.5 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,.08),transparent_35%)]">
-                                <div v-if="!selectedChatUser" class="h-full min-h-[520px] flex items-center justify-center text-center"><div><i class="fa-regular fa-comments text-3xl text-zinc-700"></i><p class="text-sm text-zinc-500 mt-3">왼쪽에서 대화 상대를 선택하세요.</p></div></div>
-                                <div v-else-if="chatMessagesLoading" class="h-full min-h-[520px] flex items-center justify-center text-zinc-500 text-xs"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i>메시지를 불러오는 중...</div>
-                                <template v-else>
-                                    <div v-if="!chatMessages.length" class="h-full min-h-[420px] flex items-center justify-center text-center"><div><i class="fa-solid fa-paper-plane text-2xl text-cyan-500/40"></i><p class="text-xs text-zinc-500 mt-3">첫 메시지를 보내보세요.</p></div></div>
-                                    <div v-for="msg in chatMessages" :key="msg.id" class="flex" :class="msg.senderId === currentUser?.uid ? 'justify-end' : 'justify-start'">
-                                        <div class="max-w-[82%] sm:max-w-[65%]"><div class="px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap break-words" :class="msg.senderId === currentUser?.uid ? 'bg-cyan-600 text-white rounded-br-md' : 'bg-[#181b24] border border-[#27272a] text-zinc-200 rounded-bl-md'">{{ msg.text }}</div><div class="text-[9px] text-zinc-600 mt-1 px-1" :class="msg.senderId === currentUser?.uid ? 'text-right' : ''">{{ formatChatTime(msg.createdAt) }}</div></div>
-                                    </div>
-                                </template>
-                            </div>
-                            <form v-if="selectedChatUser" @submit.prevent="sendChatMessage" class="p-3 sm:p-4 border-t border-[#1f2833] bg-[#0f121a] flex gap-2">
-                                <textarea v-model="chatDraft" @keydown.enter.exact.prevent="sendChatMessage" rows="1" maxlength="2000" placeholder="메시지를 입력하세요... (Shift+Enter 줄바꿈)" class="flex-1 resize-none bg-[#181b24] border border-[#27272a] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500"></textarea>
-                                <button type="submit" :disabled="chatSending || !chatDraft.trim()" class="w-11 h-11 shrink-0 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 text-white flex items-center justify-center"><i v-if="!chatSending" class="fa-solid fa-paper-plane text-xs"></i><i v-else class="fa-solid fa-circle-notch fa-spin text-xs"></i></button>
-                            </form>
-                        </section>
-                    </div>
-                </div>
-
                 <!-- 🏠 홈 -->
                 <div v-if="currentTab === 'home'" class="space-y-6 mobile-section">
                     <div class="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-emerald-500/10 via-[#11151d] to-indigo-500/10 p-6 lg:p-8 shadow-2xl">
@@ -1163,7 +1093,7 @@
                         <div class="relative">
                             <span class="text-[10px] tracking-[.22em] uppercase text-emerald-300/80 font-bold">BARTAIL</span>
                             <h2 class="text-3xl lg:text-4xl font-black tracking-tight text-white mt-2">나만의 홈바를 한눈에</h2>
-                            <p class="text-sm text-zinc-400 mt-2 max-w-2xl">내 술장과 칵테일, 커뮤니티를 한 곳에서 관리하세요.</p>
+                            <p class="text-sm text-zinc-400 mt-2 max-w-2xl">내 술장과 칵테일, 그리고 BarTail Lounge를 한 곳에서 관리하세요.</p>
                             <div class="flex flex-wrap gap-2 mt-6">
                                 <button @click="currentTab='catalog'; catalogWishlistOnly=false" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold"><i class="fa-solid fa-book-open mr-1.5"></i>카탈로그 보기</button>
                                 <button @click="currentTab='cellar'" class="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-200 text-xs font-semibold"><i class="fa-solid fa-wine-bottle mr-1.5"></i>내 술장</button>
@@ -1176,6 +1106,32 @@
                         <button @click="currentTab='catalog'; catalogWishlistOnly=true" class="text-left rounded-2xl border border-white/10 bg-[#11151d]/80 p-4 hover:bg-white/[.04] transition"><div class="text-[10px] text-zinc-500">위시리스트</div><div class="text-2xl font-black text-pink-300 mt-1">{{ wishlistCatalog.length }}</div></button>
                         <button @click="currentTab='ibaDirectory'" class="text-left rounded-2xl border border-white/10 bg-[#11151d]/80 p-4 hover:bg-white/[.04] transition"><div class="text-[10px] text-zinc-500">IBA 도감</div><div class="text-2xl font-black text-violet-300 mt-1">{{ ibaOfficialDatabase.length }}</div></button>
                     </div>
+
+                    <!-- 🌐 전체 채팅: 사용자와 관리자 공용 -->
+                    <section v-if="(hasServiceAccess || isAdmin) && !impersonationMode" class="bg-[#12141c] border border-cyan-500/15 rounded-3xl overflow-hidden shadow-xl">
+                        <div class="px-5 py-4 border-b border-[#1f2833] flex items-center justify-between gap-3 bg-gradient-to-r from-cyan-500/[.06] to-transparent">
+                            <div class="min-w-0"><div class="flex items-center gap-2"><span class="w-8 h-8 rounded-xl bg-cyan-400/10 border border-cyan-400/15 flex items-center justify-center"><i class="fa-solid fa-comments text-cyan-300"></i></span><div><div class="text-[9px] font-bold tracking-[.18em] uppercase text-cyan-300/80">BARTAIL LOUNGE</div><h3 class="text-base sm:text-lg font-black text-white">전체 채팅</h3></div></div><p class="text-[11px] text-zinc-500 mt-2 ml-10">BarTail의 모든 활성 사용자와 관리자가 함께 대화하는 공간입니다.</p></div>
+                            <button @click="startGlobalChatListener" class="w-9 h-9 shrink-0 rounded-xl bg-[#181b24] border border-[#27272a] text-zinc-400 hover:text-white"><i class="fa-solid fa-rotate text-xs"></i></button>
+                        </div>
+                        <div ref="chatMessagesEl" class="h-[430px] sm:h-[500px] overflow-y-auto p-4 sm:p-5 space-y-3 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,.07),transparent_35%)]">
+                            <div v-if="chatMessagesLoading" class="h-full flex items-center justify-center text-xs text-zinc-500"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i>채팅을 불러오는 중...</div>
+                            <div v-else-if="!chatMessages.length" class="h-full flex items-center justify-center text-center"><div><i class="fa-regular fa-comments text-3xl text-zinc-700"></i><p class="text-sm text-zinc-500 mt-3">아직 메시지가 없습니다.</p><p class="text-[10px] text-zinc-700 mt-1">첫 메시지를 남겨보세요.</p></div></div>
+                            <template v-else>
+                                <div v-for="msg in chatMessages" :key="msg.id" class="flex gap-2.5" :class="msg.senderId === currentUser?.uid ? 'justify-end' : 'justify-start'">
+                                    <div v-if="msg.senderId !== currentUser?.uid" class="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-tr from-emerald-600/40 to-indigo-600/40 border border-white/5 flex items-center justify-center shrink-0 mt-1"><img v-if="msg.senderAvatar" :src="msg.senderAvatar" :alt="msg.senderNickname" class="w-full h-full object-cover"><span v-else class="text-[9px] font-bold text-white">{{ getProfileInitial(msg.senderNickname) }}</span></div>
+                                    <div class="max-w-[82%] sm:max-w-[70%]" :class="msg.senderId === currentUser?.uid ? 'text-right' : ''">
+                                        <div v-if="msg.senderId !== currentUser?.uid" class="flex items-center gap-2 px-1 mb-1"><span class="text-[10px] font-bold text-zinc-300">{{ msg.senderNickname }}</span><span v-if="msg.senderIsAdmin" class="text-[8px] font-bold text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 rounded px-1.5 py-0.5">ADMIN</span></div>
+                                        <div class="inline-block text-left px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap break-words" :class="msg.senderId === currentUser?.uid ? 'bg-cyan-600 text-white rounded-br-md' : 'bg-[#181b24] border border-[#27272a] text-zinc-200 rounded-bl-md'">{{ msg.text }}</div>
+                                        <div class="text-[9px] text-zinc-600 mt-1 px-1">{{ formatChatTime(msg.createdAt) }}</div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                        <form @submit.prevent="sendGlobalChatMessage" class="p-3 sm:p-4 border-t border-[#1f2833] bg-[#0f121a] flex gap-2">
+                            <textarea v-model="chatDraft" @keydown.enter.exact.prevent="sendGlobalChatMessage" rows="1" maxlength="2000" placeholder="전체 채팅에 메시지를 입력하세요... (Shift+Enter 줄바꿈)" class="flex-1 resize-none bg-[#181b24] border border-[#27272a] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500"></textarea>
+                            <button type="submit" :disabled="chatSending || !chatDraft.trim()" class="w-11 h-11 shrink-0 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 text-white flex items-center justify-center"><i v-if="!chatSending" class="fa-solid fa-paper-plane text-xs"></i><i v-else class="fa-solid fa-circle-notch fa-spin text-xs"></i></button>
+                        </form>
+                    </section>
                 </div>
 
                 <!-- 🔐 관리자 센터 -->
@@ -2517,33 +2473,19 @@
                 const webIcon = ref('');
                 const webIconForm = reactive({ preview: '', remove: false });
 
-                // 사용자 프로필 / 1:1 채팅
+                // 사용자 프로필 / 전체 채팅
                 const profileForm = reactive({ nickname: '', avatar: '' });
                 const profileSaving = ref(false);
-                const chatUserSearch = ref('');
-                const chatUsers = ref([]);
-                const chatLoading = ref(false);
-                const selectedChatUser = ref(null);
-                const chatMobileView = ref(false);
                 const chatMessages = ref([]);
                 const chatMessagesLoading = ref(false);
                 const chatSending = ref(false);
                 const lastChatSentAt = ref(0);
                 const chatDraft = ref('');
                 const chatUnreadCount = ref(0);
-                const chatList = ref([]);
                 const chatMessagesEl = ref(null);
-                let chatListUnsubscribe = null;
                 let chatMessagesUnsubscribe = null;
-                let chatListPollTimer = null;
-                let profileLoadPromise = null;
 
                 const profileInitial = computed(() => getProfileInitial(profileForm.nickname || currentUser.value?.email || 'B'));
-                const filteredChatUsers = computed(() => {
-                    const q = String(chatUserSearch.value || '').trim().toLowerCase();
-                    return chatUsers.value.filter(u => u.uid !== currentUser.value?.uid && (!q || String(u.nickname || '').toLowerCase().includes(q)));
-                });
-
                 const getProfileInitial = (value) => {
                     const text = String(value || '').trim();
                     return (text.charAt(0) || 'B').toUpperCase();
@@ -2554,7 +2496,7 @@
                     return sanitizeNickname(email.split('@')[0] || 'BarTail User') || 'BarTail User';
                 };
                 const ensureMyProfile = async () => {
-                    if (!firebaseDb || !currentUser.value || !hasServiceAccess.value) return null;
+                    if (!firebaseDb || !currentUser.value || (!hasServiceAccess.value && !isAdmin.value)) return null;
                     const uid = currentUser.value.uid;
                     const ref = firebaseDb.collection('profiles').doc(uid);
                     const snap = await ref.get();
@@ -2571,18 +2513,17 @@
                     return payload;
                 };
                 const loadMyProfile = async () => {
-                    if (!currentUser.value || !hasServiceAccess.value || impersonationMode.value) return;
+                    if (!currentUser.value || (!hasServiceAccess.value && !isAdmin.value) || impersonationMode.value) return;
                     try { await ensureMyProfile(); } catch (error) { console.error('[BarTail] profile load', error); triggerToast(error.message || '프로필을 불러오지 못했습니다.', 'error'); }
                 };
                 const saveMyProfile = async () => {
-                    if (!firebaseDb || !currentUser.value || !hasServiceAccess.value || impersonationMode.value) return;
+                    if (!firebaseDb || !currentUser.value || (!hasServiceAccess.value && !isAdmin.value) || impersonationMode.value) return;
                     const nickname = sanitizeNickname(profileForm.nickname);
                     if (nickname.length < 2) return triggerToast('닉네임은 2자 이상 입력해주세요.', 'error');
                     profileSaving.value = true;
                     try {
                         await firebaseDb.collection('profiles').doc(currentUser.value.uid).set({ uid: currentUser.value.uid, nickname, avatar: String(profileForm.avatar || ''), updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
                         profileForm.nickname = nickname;
-                        await loadChatDirectory();
                         triggerToast('프로필을 저장했습니다.');
                     } catch (error) { triggerToast(error.message || '프로필 저장에 실패했습니다.', 'error'); }
                     finally { profileSaving.value = false; }
@@ -2612,86 +2553,41 @@
                     };
                     reader.readAsDataURL(file);
                 };
-                const loadChatDirectory = async () => {
-                    if (!firebaseDb || !currentUser.value || !hasServiceAccess.value || isAdmin.value || impersonationMode.value) return;
-                    chatLoading.value = true;
-                    try {
-                        const token = await getFirebaseIdToken();
-                        const data = await apiJson(`/api/index?route=chat-users&t=${Date.now()}`, { method: 'GET', headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
-                        chatUsers.value = (Array.isArray(data.users) ? data.users : []).filter(u => u.uid !== currentUser.value.uid);
-                    } catch (error) { console.error('[BarTail] chat directory', error); triggerToast(error.message || '사용자 목록을 불러오지 못했습니다.', 'error'); }
-                    finally { chatLoading.value = false; }
+
+                const stopGlobalChatListener = () => {
+                    if (chatMessagesUnsubscribe) { chatMessagesUnsubscribe(); chatMessagesUnsubscribe = null; }
                 };
-                const chatIdFor = (uidA, uidB) => [String(uidA), String(uidB)].sort().join('__');
-                const stopChatMessageListener = () => { if (chatMessagesUnsubscribe) { chatMessagesUnsubscribe(); chatMessagesUnsubscribe = null; } };
-                const stopChatListListener = () => {
-                    if (chatListUnsubscribe) { chatListUnsubscribe(); chatListUnsubscribe = null; }
-                    if (chatListPollTimer) { clearInterval(chatListPollTimer); chatListPollTimer = null; }
-                };
-                const loadChatList = async () => {
-                    if (!firebaseDb || !currentUser.value || !hasServiceAccess.value || isAdmin.value || impersonationMode.value) return;
-                    try {
-                        const token = await getFirebaseIdToken();
-                        const data = await apiJson(`/api/index?route=chat-list&t=${Date.now()}`, { method: 'GET', headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
-                        chatList.value = Array.isArray(data.chats) ? data.chats : [];
-                        chatUnreadCount.value = Number(data.unreadCount || 0);
-                    } catch (error) {
-                        console.error('[BarTail] chat list', error);
-                        if (!chatList.value.length) triggerToast(error.message || '최근 대화를 불러오지 못했습니다.', 'error');
-                    }
-                };
-                const startChatListPolling = () => {
-                    stopChatListListener();
-                    if (!currentUser.value || !hasServiceAccess.value || isAdmin.value || impersonationMode.value) return;
-                    loadChatList().catch(() => {});
-                    chatListPollTimer = setInterval(() => { loadChatList().catch(() => {}); }, 10000);
-                };
-                const openChatWith = async (person) => {
-                    if (!person || !currentUser.value || person.uid === currentUser.value.uid) return;
-                    selectedChatUser.value = person;
-                    chatMobileView.value = true;
-                    chatDraft.value = '';
-                    chatMessages.value = [];
+                const startGlobalChatListener = () => {
+                    stopGlobalChatListener();
+                    if (!firebaseDb || !currentUser.value || (!hasServiceAccess.value && !isAdmin.value) || impersonationMode.value) return;
                     chatMessagesLoading.value = true;
-                    stopChatMessageListener();
-                    const chatId = chatIdFor(currentUser.value.uid, person.uid);
-                    try {
-                        const token = await getFirebaseIdToken();
-                        await apiJson('/api/index?route=chat-open', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ otherUid: person.uid }) });
-                        await loadChatList().catch(() => {});
-                        const chatRef = firebaseDb.collection('chats').doc(chatId);
-                        chatMessagesUnsubscribe = chatRef.collection('messages').orderBy('createdAt', 'asc').onSnapshot(ms => {
-                            chatMessages.value = ms.docs.map(d => ({ id: d.id, ...d.data() }));
-                            chatMessagesLoading.value = false;
-                            nextTickScrollChat();
-                        }, error => { chatMessagesLoading.value = false; console.error('[BarTail] messages', error); triggerToast('메시지를 불러오지 못했습니다.', 'error'); });
-                    } catch (error) { chatMessagesLoading.value = false; triggerToast(error.message || '대화를 열지 못했습니다.', 'error'); }
+                    const query = firebaseDb.collection('globalChat').orderBy('createdAt', 'desc').limit(100);
+                    chatMessagesUnsubscribe = query.onSnapshot(snapshot => {
+                        chatMessages.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).reverse();
+                        chatMessagesLoading.value = false;
+                        nextTickScrollChat();
+                    }, error => {
+                        chatMessagesLoading.value = false;
+                        console.error('[BarTail] global chat listener', error);
+                        triggerToast('전체 채팅을 불러오지 못했습니다. Firestore Rules를 확인해주세요.', 'error');
+                    });
                 };
-                const closeMobileChat = () => {
-                    chatMobileView.value = false;
-                    selectedChatUser.value = null;
-                    chatDraft.value = '';
-                    chatMessages.value = [];
-                    stopChatMessageListener();
-                };
-                const nextTickScrollChat = () => setTimeout(() => { const el = chatMessagesEl.value; if (el) el.scrollTop = el.scrollHeight; }, 60);
-                const sendChatMessage = async () => {
+                const sendGlobalChatMessage = async () => {
                     const text = String(chatDraft.value || '').trim();
-                    if (!text || chatSending.value || !selectedChatUser.value || !firebaseDb || !currentUser.value) return;
+                    if (!text || chatSending.value || !currentUser.value || (!hasServiceAccess.value && !isAdmin.value)) return;
                     if (Date.now() - lastChatSentAt.value < 700) return triggerToast('메시지를 너무 빠르게 보내고 있습니다.', 'error');
                     if (text.length > 2000) return triggerToast('메시지는 2000자 이하로 입력해주세요.', 'error');
                     chatSending.value = true;
                     try {
-                        const other = selectedChatUser.value.uid;
                         const token = await getFirebaseIdToken();
-                        await apiJson('/api/index?route=chat-send', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ otherUid: other, text }) });
+                        await apiJson('/api/index?route=global-chat-send', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ text }) });
                         chatDraft.value = '';
                         lastChatSentAt.value = Date.now();
-                        await loadChatList().catch(() => {});
                         nextTickScrollChat();
                     } catch (error) { triggerToast(error.message || '메시지 전송에 실패했습니다.', 'error'); }
                     finally { chatSending.value = false; }
                 };
+                const nextTickScrollChat = () => setTimeout(() => { const el = chatMessagesEl.value; if (el) el.scrollTop = el.scrollHeight; }, 60);
                 const formatChatTime = (timestamp) => {
                     const d = timestamp?.toDate?.() || (timestamp ? new Date(timestamp) : null);
                     if (!d || Number.isNaN(d.getTime())) return '전송 중';
@@ -3283,18 +3179,22 @@
                             currentUser.value = user || null;
                             cloudHydrated = false;
                             if (!user) {
-                                stopChatListListener();
+                                stopGlobalChatListener();
                                 isAdmin.value = false;
                                 Object.assign(serviceAccess, { active: false, validFrom: null, validUntil: null, keyId: null, label: '', reason: '' });
                                 return;
                             }
                             try {
                                 await loadAccessStatus();
+                                // bootstrap 관리자 계정은 서버에서 claim을 갱신할 수 있으므로
+                                // Firestore Rules가 최신 admin claim을 보도록 ID token을 즉시 갱신합니다.
+                                if (isAdmin.value && firebaseAuth.currentUser) {
+                                    await firebaseAuth.currentUser.getIdToken(true);
+                                }
                                 await hydrateFromCloud();
-                                if (hasServiceAccess.value && !impersonationMode.value) {
+                                if ((hasServiceAccess.value || isAdmin.value) && !impersonationMode.value) {
                                     await ensureMyProfile().catch(err => console.warn('[BarTail] profile bootstrap', err));
-                                    await loadChatDirectory().catch(() => {});
-                                    startChatListPolling();
+                                    startGlobalChatListener();
                                 }
                                 // 관리자 전용 API는 로그인 과정과 분리합니다.
                                 // 관리자 센터를 열거나 새로고침할 때만 사용자/키 목록을 조회합니다.
@@ -7547,7 +7447,7 @@ const favoriteIbaRecipesCount = computed(() => ibaOfficialDatabase.filter(iba =>
                     openSubstitutionEditor, saveSubstitutionRule, toggleSubstitutionRule, deleteSubstitutionRule, restoreDefaultSubstitutions, resetSubstitutionForm,
                     toast, confirmModal, executeConfirmAction, getTabTitle, exportData, importData, handleImageError, handleItemImageUpload,
                     profileForm, profileSaving, profileInitial, loadMyProfile, saveMyProfile, removeProfileAvatar, handleProfileAvatarUpload, sanitizeNickname, getProfileInitial,
-                    chatUserSearch, chatUsers, chatLoading, filteredChatUsers, selectedChatUser, chatMobileView, chatMessages, chatMessagesLoading, chatSending, chatDraft, chatUnreadCount, lastChatSentAt, chatMessagesEl, loadChatDirectory, loadChatList, startChatListPolling, openChatWith, closeMobileChat, sendChatMessage, formatChatTime,
+                    chatMessages, chatMessagesLoading, chatSending, chatDraft, chatUnreadCount, lastChatSentAt, chatMessagesEl, startGlobalChatListener, sendGlobalChatMessage, formatChatTime,
                     firebaseReady, firebaseConfigured, currentUser, isAdmin, impersonationMode, impersonationStartedAt, serviceAccess, hasServiceAccess, accessRemainingText, authMode, authLoading, authError, authForm, firebaseStatusMessage,
                     signIn, signUp, sendPasswordReset, signOutUser, returnToAdmin, loginAsUser, activateAccessKey, contactLink, openContactLink, adminKeys, adminKeysLoading, adminUsers, adminUsersLoading, adminUsersError, adminUserSearch, adminUserStatusFilter, filteredAdminUsers, adminKeySearch, adminKeyStatusFilter, filteredAdminKeys, adminAuditLogs, adminAuditLoading, loadAdminAuditLogs, keyExpandedId, adminKeyForm, generatedAccessKey, createAccessKey, loadAdminKeys, loadAdminUsers, deleteRegisteredUser, revokeAccessKey, toggleKeyUsers, extendAccessKey, deleteAccessKey, copyGeneratedKey, copyText,
                     contactLinkForm, saveContactLink, loadAdminSettings, webIcon, webIconForm, handleWebIconUpload, cancelWebIconSelection, saveWebIcon, deleteWebIcon, suggestionModal, suggestionSubmitting, suggestionsLoading, catalogSuggestions, suggestionForm, openSuggestionModal, closeSuggestionModal, submitCatalogSuggestion, loadCatalogSuggestions, approveCatalogSuggestion, rejectCatalogSuggestion
