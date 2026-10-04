@@ -3345,9 +3345,17 @@
                 };
 
                 const initializeFirebase = async () => {
+                    // Firebase 초기화와 공개 설정 로드는 서로 분리합니다.
+                    // 공개 설정/API가 지연되더라도 로그인 화면이 무한 로딩에 빠지지 않도록
+                    // Firebase 연결을 먼저 완료하고, 공개 설정은 실패해도 서비스 진입을 막지 않습니다.
                     try {
-                        await loadPublicSettings();
-                        const config = window.HBS_FIREBASE_CONFIG || await fetch('/api/index?route=config').then(r => r.ok ? r.json() : null);
+                        loadPublicSettings().catch(error => console.warn('[BarTail] public settings bootstrap failed:', error));
+
+                        const config = window.HBS_FIREBASE_CONFIG || await apiJson('/api/index?route=config', {
+                            method: 'GET',
+                            cache: 'no-store',
+                            timeoutMs: 10000
+                        });
                         if (!config?.apiKey || !config?.projectId) throw new Error('Firebase 설정이 없습니다. Vercel 환경변수를 먼저 설정해주세요.');
                         firebase.initializeApp(config);
                         firebaseAuth = firebase.auth();
