@@ -998,13 +998,10 @@
                                 <button @click="currentTab = 'recipe'; sidebarOpen = false" :class="currentTab === 'recipe' ? 'text-violet-300 font-semibold bg-violet-500/10' : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.03]'" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left transition"><i class="fa-solid fa-bookmark w-4"></i><span>내 레시피 & 시음록</span></button>
                             </div>
 
-                            <!-- 커뮤니티 -->
-                            <button v-if="hasServiceAccess && !isAdmin && !impersonationMode" @click="navGroups.community = !navGroups.community" :aria-expanded="navGroups.community" :class="['w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-transparent text-sm text-left transition', (navGroups.community || currentTab === 'chat') ? 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20 font-semibold' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200']">
-                                <i class="fa-solid fa-comments w-5 text-cyan-400"></i><span class="flex-1">커뮤니티</span><span v-if="chatUnreadCount > 0" class="min-w-5 h-5 px-1.5 rounded-full bg-cyan-500 text-[#061014] text-[9px] font-extrabold flex items-center justify-center">{{ chatUnreadCount }}</span><i :class="navGroups.community ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'" class="text-[10px] text-zinc-500"></i>
+                            <!-- 커뮤니티 : 바로 채팅으로 이동 -->
+                            <button v-if="hasServiceAccess && !impersonationMode" @click="currentTab = 'chat'; sidebarOpen = false; loadChatDirectory(); loadChatList()" :class="currentTab === 'chat' ? 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20 font-semibold' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-transparent text-sm text-left transition">
+                                <i class="fa-solid fa-comments w-5 text-cyan-400"></i><span class="flex-1">커뮤니티</span><span v-if="chatUnreadCount > 0" class="min-w-5 h-5 px-1.5 rounded-full bg-cyan-500 text-[#061014] text-[9px] font-extrabold flex items-center justify-center">{{ chatUnreadCount }}</span><span class="text-[10px] text-zinc-500">채팅</span>
                             </button>
-                            <div v-if="hasServiceAccess && !isAdmin && !impersonationMode" v-show="navGroups.community" class="ml-4 pl-3 border-l border-[#27313b] space-y-0.5 py-1">
-                                <button @click="currentTab = 'chat'; sidebarOpen = false; loadChatDirectory(); loadChatList()" :class="currentTab === 'chat' ? 'text-cyan-300 font-semibold bg-cyan-500/10' : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.03]'" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left transition"><i class="fa-solid fa-comments w-4"></i><span class="flex-1">유저 채팅</span><span v-if="chatUnreadCount > 0" class="text-[9px] text-cyan-300">{{ chatUnreadCount }}</span></button>
-                            </div>
 
                             <!-- 설정 -->
                             <button v-if="hasServiceAccess && !impersonationMode" @click="navGroups.settings = !navGroups.settings" :aria-expanded="navGroups.settings" :class="['w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-transparent text-sm text-left transition', (navGroups.settings || currentTab === 'profile') ? 'bg-zinc-500/10 text-zinc-200 border-zinc-500/20 font-semibold' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200']">
@@ -1095,7 +1092,7 @@
                 </div>
 
                 <!-- 💬 유저 채팅 -->
-                <div v-if="currentTab === 'chat' && hasServiceAccess && !isAdmin && !impersonationMode" class="space-y-6 mobile-section">
+                <div v-if="currentTab === 'chat' && hasServiceAccess && !impersonationMode" class="space-y-6 mobile-section">
                     <div class="flex items-end justify-between gap-4">
                         <div>
                             <span class="inline-flex px-2.5 py-1 bg-cyan-500/10 border border-cyan-500/25 text-cyan-300 text-[10px] font-bold tracking-[.08em] rounded-lg">USER CHAT</span>
@@ -1176,6 +1173,27 @@
                         <button @click="currentTab='catalog'; catalogWishlistOnly=true" class="text-left rounded-2xl border border-white/10 bg-[#11151d]/80 p-4 hover:bg-white/[.04] transition"><div class="text-[10px] text-zinc-500">위시리스트</div><div class="text-2xl font-black text-pink-300 mt-1">{{ wishlistCatalog.length }}</div></button>
                         <button @click="currentTab='ibaDirectory'" class="text-left rounded-2xl border border-white/10 bg-[#11151d]/80 p-4 hover:bg-white/[.04] transition"><div class="text-[10px] text-zinc-500">IBA 도감</div><div class="text-2xl font-black text-violet-300 mt-1">{{ ibaOfficialDatabase.length }}</div></button>
                     </div>
+                    <!-- 커뮤니티 바로가기 -->
+                    <section v-if="hasServiceAccess && !impersonationMode" class="relative overflow-hidden rounded-3xl border border-cyan-400/15 bg-gradient-to-br from-cyan-500/10 via-[#11151d]/90 to-indigo-500/10 p-5 lg:p-6 shadow-xl">
+                        <div class="absolute -right-16 -top-16 w-48 h-48 rounded-full bg-cyan-400/10 blur-3xl pointer-events-none"></div>
+                        <div class="relative flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2"><span class="w-8 h-8 rounded-xl bg-cyan-400/10 border border-cyan-400/15 flex items-center justify-center"><i class="fa-solid fa-comments text-cyan-300"></i></span><span class="text-[10px] tracking-[.2em] uppercase text-cyan-300/80 font-bold">COMMUNITY</span><span v-if="chatUnreadCount > 0" class="px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-400/20 text-[9px] font-bold text-cyan-200">{{ chatUnreadCount }} NEW</span></div>
+                                <h3 class="text-xl lg:text-2xl font-black text-white mt-3">BarTail 유저들과 대화해보세요</h3>
+                                <p class="text-xs text-zinc-400 mt-1.5">닉네임으로 다른 사용자를 찾아 1:1로 메시지를 주고받을 수 있습니다.</p>
+                                <div v-if="chatList.length" class="flex flex-wrap gap-2 mt-4">
+                                    <button v-for="chat in chatList.slice(0,3)" :key="'home-chat-'+chat.id" @click="currentTab='chat'; openChatWith(chat.other)" class="max-w-full inline-flex items-center gap-2 px-2.5 py-2 rounded-xl bg-white/[.04] border border-white/10 hover:bg-white/[.08] transition text-left">
+                                        <span class="w-7 h-7 rounded-full overflow-hidden bg-[#20242d] flex items-center justify-center shrink-0"><img v-if="chat.other?.avatar" :src="chat.other.avatar" class="w-full h-full object-cover" :alt="chat.other.nickname"><span v-else class="text-[9px] font-bold text-zinc-300">{{ getProfileInitial(chat.other?.nickname) }}</span></span>
+                                        <span class="min-w-0"><span class="block text-[10px] font-bold text-zinc-200 truncate max-w-[130px]">{{ chat.other?.nickname }}</span><span class="block text-[9px] text-zinc-600 truncate max-w-[130px]">{{ chat.lastMessage || '대화를 시작했습니다.' }}</span></span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="shrink-0 flex flex-wrap gap-2">
+                                <button @click="currentTab='chat'; loadChatDirectory(); loadChatList()" class="px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-[#061014] text-xs font-black shadow-lg shadow-cyan-500/10"><i class="fa-solid fa-comments mr-1.5"></i>커뮤니티 열기</button>
+                                <button @click="currentTab='chat'; loadChatDirectory(); loadChatList(); chatUserSearch=''" class="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-200 text-xs font-semibold"><i class="fa-solid fa-user-plus mr-1.5"></i>유저 찾기</button>
+                            </div>
+                        </div>
+                    </section>
                 </div>
 
                 <!-- 🔐 관리자 센터 -->
@@ -2482,7 +2500,7 @@
 
         createApp({
             setup() {
-                const currentTab = ref('catalog');
+                const currentTab = ref('home');
                 // Firebase / 인증 상태
                 const firebaseReady = ref(false);
                 const firebaseConfigured = ref(false);
@@ -2607,7 +2625,7 @@
                     reader.readAsDataURL(file);
                 };
                 const loadChatDirectory = async () => {
-                    if (!firebaseDb || !currentUser.value || !hasServiceAccess.value || isAdmin.value || impersonationMode.value) return;
+                    if (!firebaseDb || !currentUser.value || !hasServiceAccess.value || impersonationMode.value) return;
                     chatLoading.value = true;
                     try {
                         const token = await getFirebaseIdToken();
@@ -2623,7 +2641,7 @@
                     if (chatListPollTimer) { clearInterval(chatListPollTimer); chatListPollTimer = null; }
                 };
                 const loadChatList = async () => {
-                    if (!firebaseDb || !currentUser.value || !hasServiceAccess.value || isAdmin.value || impersonationMode.value) return;
+                    if (!firebaseDb || !currentUser.value || !hasServiceAccess.value || impersonationMode.value) return;
                     try {
                         const token = await getFirebaseIdToken();
                         const data = await apiJson(`/api/index?route=chat-list&t=${Date.now()}`, { method: 'GET', headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
@@ -2636,7 +2654,7 @@
                 };
                 const startChatListPolling = () => {
                     stopChatListListener();
-                    if (!currentUser.value || !hasServiceAccess.value || isAdmin.value || impersonationMode.value) return;
+                    if (!currentUser.value || !hasServiceAccess.value || impersonationMode.value) return;
                     loadChatList().catch(() => {});
                     chatListPollTimer = setInterval(() => { loadChatList().catch(() => {}); }, 10000);
                 };
