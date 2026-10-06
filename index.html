@@ -1183,7 +1183,7 @@
                         </div>
                     </div>
 
-<div v-if="adminSubTab === 'access'" class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+<div v-show="adminSubTab === 'access'" class="grid grid-cols-1 xl:grid-cols-2 gap-5">
                         <div class="bg-[#12141c] border border-emerald-500/20 rounded-3xl p-6 admin-glow space-y-5">
                             <div><h3 class="text-lg font-bold text-white">새 이용 키 발급</h3><p class="text-[11px] text-zinc-500 mt-1">발급된 키는 서버에 해시로만 저장되며 원문은 발급 직후 한 번만 표시됩니다.</p></div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1233,7 +1233,7 @@
                             </div>
                         </div>
                     </div>
-<div v-if="adminSubTab === 'access'" class="bg-[#12141c] border border-[#1f2833] rounded-3xl p-6 space-y-4">
+<div v-show="adminSubTab === 'access'" class="bg-[#12141c] border border-[#1f2833] rounded-3xl p-6 space-y-4">
                         <div class="flex items-center justify-between gap-3"><div><h3 class="text-lg font-bold text-white">가입 사용자 관리</h3><p class="text-[11px] text-zinc-500 mt-1">Firebase Authentication 계정과 이용권 상태를 확인합니다.</p></div><span class="text-xs text-zinc-500">{{ filteredAdminUsers.length }}/{{ adminUsers.length }}명</span></div>
                         <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2"><input v-model="adminUserSearch" placeholder="이메일·UID·라벨 검색" class="w-full bg-[#181b24] border border-[#27272a] rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"><select v-model="adminUserStatusFilter" class="bg-[#181b24] border border-[#27272a] rounded-xl px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-indigo-500"><option value="all">전체 상태</option><option value="active">사용 가능</option><option value="expiring">7일 이내 만료</option><option value="inactive">미사용/만료</option><option value="disabled">비활성 계정</option><option value="admin">관리자</option></select></div>
                         <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-[10px] text-amber-200/80">보안을 위해 실제 비밀번호는 조회할 수 없습니다. 이메일, Firebase UID, 가입일, 최근 로그인, 이용권 상태와 만료 시각을 확인할 수 있습니다.</div>
@@ -1244,7 +1244,7 @@
                             <tr v-for="user in filteredAdminUsers" :key="user.uid" class="border-b border-[#1f2833] last:border-0"><td class="px-3 py-3"><div class="text-xs text-white font-semibold">{{ user.email || '(이메일 없음)' }}</div><div class="text-[9px] text-zinc-500 mt-0.5">{{ user.provider || 'password' }}</div></td><td class="px-3 py-3"><button @click="copyText(user.uid)" class="text-[9px] font-mono text-indigo-300 hover:text-indigo-200">{{ user.uid }}</button></td><td class="px-3 py-3 text-[9px] text-zinc-400"><div>{{ user.createdAt || '-' }}</div><div class="text-zinc-600 mt-1">{{ user.lastSignInAt || '-' }}</div></td><td class="px-3 py-3"><span class="px-2 py-1 rounded-lg text-[9px] font-bold border" :class="user.isAdmin ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : user.disabled ? 'bg-red-500/10 text-red-300 border-red-500/20' : user.accessExpiresSoon ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' : user.accessActive ? 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20' : 'bg-zinc-800 text-zinc-500 border-zinc-700'">{{ user.isAdmin ? '관리자' : user.disabled ? '비활성' : user.accessExpiresSoon ? '7일 이내 만료' : user.accessActive ? '사용 가능' : '미사용/만료' }}</span></td><td class="px-3 py-3 text-[9px] text-zinc-400">{{ user.validUntil || '-' }}<div v-if="user.accessLabel" class="text-zinc-600 mt-1 truncate max-w-[130px]">{{ user.accessLabel }}</div></td><td class="px-3 py-3 text-right"><div v-if="!user.isAdmin" class="flex justify-end items-center gap-1.5"><button @click="loginAsUser(user)" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 hover:bg-indigo-500/20 hover:text-indigo-200 text-[10px] font-semibold transition"><i class="fa-solid fa-user-secret"></i><span>사용자로 접속</span></button><button @click="deleteRegisteredUser(user)" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 hover:bg-red-500/20 hover:text-red-200 text-[10px] font-semibold transition"><i class="fa-solid fa-trash"></i><span>삭제</span></button></div><span v-else class="text-[9px] text-zinc-600">보호됨</span></td></tr>
                         </tbody></table></div>
                     </div>
-<div v-if="adminSubTab === 'chat'" class="bg-[#12141c] border border-cyan-500/15 rounded-3xl p-6 space-y-5">
+<div v-show="adminSubTab === 'chat'" class="bg-[#12141c] border border-cyan-500/15 rounded-3xl p-6 space-y-5">
                         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                             <div><h3 class="text-lg font-bold text-white"><i class="fa-solid fa-comments text-cyan-300 mr-2"></i>전체 채팅 관리</h3><p class="text-[11px] text-zinc-500 mt-1">특정 메시지(관리자 메시지 포함) 삭제, 특정 사용자의 전체 메시지 삭제, 채팅 금지·해제를 관리합니다.</p></div>
                             <div class="flex flex-wrap items-center gap-2">
@@ -1284,7 +1284,7 @@
                             <div class="rounded-2xl border border-[#27272a] bg-[#0f121a] p-4 space-y-4"><div><div class="text-xs font-bold text-white">채팅 금지 사유</div><p class="text-[9px] text-zinc-600 mt-1">금지 처리 시 관리자 기록에도 남습니다.</p></div><textarea v-model="chatModerationBanReason" rows="3" maxlength="200" placeholder="예: 도배, 욕설, 타인 비방 등" class="w-full resize-none bg-[#181b24] border border-[#27272a] rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-red-500"></textarea><div><div class="text-xs font-bold text-white">현재 금지 사용자</div><div v-if="!chatModerationBans.length" class="text-[10px] text-zinc-600 mt-2">현재 금지된 사용자가 없습니다.</div><div v-else class="mt-2 space-y-2 max-h-[250px] overflow-y-auto"><div v-for="ban in chatModerationBans" :key="ban.uid" class="rounded-xl border border-red-500/15 bg-red-500/5 p-2.5"><div class="text-[10px] font-semibold text-red-200 truncate">{{ ban.uid }}</div><div class="text-[9px] text-zinc-500 mt-1">{{ ban.reason || '사유 없음' }} · {{ ban.until ? new Date(ban.until).toLocaleString('ko-KR') + '까지' : '영구' }}</div><button @click="moderateChatBan({senderId: ban.uid, senderNickname: ban.uid}, false)" class="mt-2 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[9px]">금지 해제</button></div></div></div></div>
                         </div>
                     </div>
-<div v-if="adminSubTab === 'audit'" class="bg-[#12141c] border border-[#1f2833] rounded-3xl p-6 space-y-4">
+<div v-show="adminSubTab === 'audit'" class="bg-[#12141c] border border-[#1f2833] rounded-3xl p-6 space-y-4">
                         <div class="flex items-center justify-between gap-3"><div><h3 class="text-lg font-bold text-white">관리자 작업 기록</h3><p class="text-[11px] text-zinc-500 mt-1">사용자 접속·삭제, 이용 키, 웹 설정, 건의 처리 이력을 확인합니다.</p></div><button @click="loadAdminAuditLogs" class="px-3 py-1.5 rounded-lg bg-[#181b24] border border-[#27272a] text-zinc-300 hover:text-white text-[10px]"><i class="fa-solid fa-rotate mr-1"></i>새로고침</button></div>
                         <div v-if="adminAuditLoading" class="py-6 text-center text-zinc-500 text-xs"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i>기록을 불러오는 중...</div>
                         <div v-else-if="!adminAuditLogs.length" class="py-6 text-center text-zinc-600 text-xs">아직 관리자 작업 기록이 없습니다.</div>
@@ -1295,7 +1295,7 @@
                             </div>
                         </div>
                     </div>
-<div class="grid grid-cols-1 xl:grid-cols-2 gap-5" v-if="adminSubTab === 'settings'">
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-5" v-show="adminSubTab === 'settings'">
 <div class="bg-[#12141c] border border-emerald-500/20 rounded-3xl p-6 space-y-4">
                             <div><h3 class="text-lg font-bold text-white">웹 아이콘 설정</h3><p class="text-[11px] text-zinc-500 mt-1">브라우저 탭 아이콘과 BarTail 사용자 아이콘에 사용할 이미지를 설정합니다.</p></div>
                             <div class="flex items-center gap-4">
@@ -1334,7 +1334,7 @@
                             </div>
                         </div>
                     </div>
-<div v-if="adminSubTab === 'content'" class="bg-[#12141c] border border-emerald-500/20 rounded-3xl p-6 space-y-4">
+<div v-show="adminSubTab === 'content'" class="bg-[#12141c] border border-emerald-500/20 rounded-3xl p-6 space-y-4">
 <div class="bg-[#12141c] border border-emerald-500/20 rounded-3xl p-6 space-y-4">
                             <div class="flex items-center justify-between gap-3"><div><h3 class="text-lg font-bold text-white">술 추가 건의</h3><p class="text-[11px] text-zinc-500 mt-1">사용자가 건의한 주류를 확인하고 전체 도감 등록을 승인합니다.</p></div><span class="text-xs text-zinc-500">{{ catalogSuggestions.length }}건</span></div>
                             <div v-if="suggestionsLoading" class="py-6 text-center text-zinc-500 text-xs"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i>건의 목록을 불러오는 중...</div>
@@ -1355,7 +1355,7 @@
                             </div>
                         </div>
                     </div>
-<div v-if="adminSubTab === 'access'" class="bg-[#12141c] border border-[#1f2833] rounded-3xl p-5 text-xs text-zinc-400 leading-relaxed">
+<div v-show="adminSubTab === 'access'" class="bg-[#12141c] border border-[#1f2833] rounded-3xl p-5 text-xs text-zinc-400 leading-relaxed">
                         <div class="flex items-center gap-2 text-emerald-300 font-bold mb-2"><i class="fa-solid fa-shield-halved"></i>권한 정책</div>
                         <div>• 전체 술 도감 등록/수정/삭제: 관리자만 가능</div>
                         <div>• 내 술장/기타 재료/대체 규칙/레시피/IBA 개인 기록: 로그인한 각 계정별로 독립 저장</div>
